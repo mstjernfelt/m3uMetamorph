@@ -152,9 +152,6 @@ class m3uParser:
         if self.preview:
             return
 
-        #import web_pdb; web_pdb.set_trace()
-        utils.debug_breakpont()
-
         if not xbmcvfs.exists(output_strm):
             if not xbmcvfs.exists(output_path):
                 xbmcvfs.mkdir(output_path)

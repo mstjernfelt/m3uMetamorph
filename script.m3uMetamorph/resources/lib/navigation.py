@@ -99,8 +99,6 @@ def refresh_from_m3u(cleanrun = False, generate_groups = True, preview = False):
     LogManagement.info(f'IPTV Provider has been set to {utils.get_provider_name()}.')
     LogManagement.info(f'Generate Groups has been set to {generate_groups}.')
     LogManagement.info(f'Preview mode has been set to {preview}.')
-   
-    utils.debug_breakpont()
 
     m3uParse = m3uParser(in_generate_groups=generate_groups, in_preview=preview, in_cleanrun=cleanrun)
     m3uParse.parse()
