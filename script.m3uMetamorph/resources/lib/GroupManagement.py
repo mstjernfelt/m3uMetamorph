@@ -9,6 +9,8 @@ from resources.lib import utils
 class Groups:
     existingGroupData = ''
     provider = ''
+    num_groups = 0
+    num_provider_groups = 0
 
     def __init__(self, playlist_data = None, generate_groups = None):
         LogManagement.info(f'Group settings file path: {utils.get_group_json_path()}.')
@@ -21,9 +23,11 @@ class Groups:
             # Load existing JSON data from file
             self.load()
             self.set(playlistGroupData)
-            result = self.save()
+            self.num_groups = self.save()
 
-            LogManagement.info(f'{result} groups whas added to groups.json, provider has a total of {len(playlistGroupData)} groups in playlist.')
+            self.num_provider_groups = len(playlistGroupData)
+
+            LogManagement.info(f'{self.num_groups} groups whas added to groups.json, provider has a total of {self.num_provider_groups} groups in playlist.')
         else:
             self.load()
 
@@ -77,13 +81,10 @@ class Groups:
 
         # Add any new groups to the list
         newGroups = 0
-        group_include_regex = utils.get_setting("group_include_regex")
         for group in differences:
             if not any(existing_group['name'] == group for existing_group in existing_groups):
-                grouptitleMatch = re.search(group_include_regex, group)
-                if grouptitleMatch is not None:
-                    newGroups += 1
-                    existing_groups.append({'name': group, 'include': False})
+                newGroups += 1
+                existing_groups.append({'name': group, 'include': False})
 
         # Convert Python data structure back to JSON format
         self.existingGroupData = {'groups': existing_groups}
@@ -121,14 +122,18 @@ class Groups:
 
         return(newDataCount - oldDataCount)
 
-    def include(self, groupTitle) -> bool:
+    def check_group_inclusion(self, groupTitle) -> bool:
         for group in self.existingGroupData.values():
             for item in group:
-                if item['name'] == groupTitle:
+                itemName = item['name']
+
+                if itemName == groupTitle:
                     if item['include'] == 'Always':
                         return True
                     
-                    return item['include']
+                    itemInclude = item['include']
+                    return itemInclude
+                
         return False
 
     def get_groups_from_playlist(self, m3uData):

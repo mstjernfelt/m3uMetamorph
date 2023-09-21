@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings>
-    <category label="30012">
+    <category label="General">
         <setting id="output_path" type="folder" label="Output path: " default="" option="writeable"/>
         <setting id="playlist_url" type="text" label="30006" default=""/>
         <setting id="provider_name" type="text" label="30007" default=""/>
         <setting id="update_library" type="bool" label="Update library" default=""/>
-        <setting label="Group filters" type="lsep"/>
-        <setting id="group_include_regex" type="text" label="Group include regex" default="(VOD|Series):"/>
         <setting id="debug_mode" type="bool" label="Debug Mode" default="False" help="Debug Mode, enables Web-PDB imports"/>
+    </category>
+    <category label="Filters">
+        <setting label="M3u Filters" type="lsep"/>
+        <setting id="movie_include" type="text" label="Movie include regex" default="(VOD):"/>
+        <setting id="series_include" type="text" label="Series include regex" default="(Series:):"/>
     </category>
 </settings>

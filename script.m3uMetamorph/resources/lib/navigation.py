@@ -43,6 +43,10 @@ def get_opts():
     headings.append(utils.translate(30011))
     handlers.append(utils.open_settings)
 
+    # Open Settings
+    headings.append("Dispaly Tree View")
+    handlers.append(lambda: display_tree())
+
     # Test - For debug only
     # headings.append("Test Exception")
     # handlers.append(test_exception)
@@ -103,12 +107,50 @@ def refresh_from_m3u(cleanrun = False, generate_groups = True, preview = False):
     m3uParse = m3uParser(in_generate_groups=generate_groups, in_preview=preview, in_cleanrun=cleanrun)
     m3uParse.parse()
 
-    #import web_pdb; web_pdb.set_trace()
+    # Your messages
+    messages = [
+        "Finished parsing m3u playlist",
+        f'{m3uParse.num_titles_skipped} titles skipped',
+        f'{m3uParse.num_movies_skipped} movies skipped',
+        f'{m3uParse.num_series_skipped} series skipped',
+        f'{m3uParse.num_other_skipped} other skipped',
+        f'{m3uParse.num_new_movies} new movies were added',
+        f'{m3uParse.num_new_movies} new tv show episodes were added',
+        f'{m3uParse.num_errors} errors writing strm file/s',
+        f'{m3uParse.groups.num_groups} new groups added',
+        f'{m3uParse.groups.num_provider_groups} groups in playlist'
+    ]
+
+    # Concatenate the messages into one string
+    message_text = "\n".join(messages)
+
+    # Display the messages in a dialog
+    dialog = xbmcgui.Dialog()
+    dialog.textviewer("Parsing Status", message_text)
 
     update_library = utils.get_setting("update_library")
 
     if update_library:
         xbmc.executebuiltin(function="UpdateLibrary(video)", wait=False)
+
+from resources.lib.treeview import TreeView, TreeNode
+def display_tree():
+    # Create a sample hierarchical data structure
+    root_node = TreeNode("Root", [
+        TreeNode("Item 1", [
+            TreeNode("Subitem 1.1"),
+            TreeNode("Subitem 1.2"),
+        ]),
+        TreeNode("Item 2", [
+            TreeNode("Subitem 2.1"),
+        ]),
+    ])
+
+    # Create a TreeView instance
+    tree_view = TreeView(root_node)
+
+    # Display the tree view
+    tree_view.display_tree()
 
 def show_log(old):
     content = logviewer.get_content(old, utils.get_inverted(), utils.get_lines(), True)
