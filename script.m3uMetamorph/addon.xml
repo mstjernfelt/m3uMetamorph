@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addon id="script.m3uMetamorph" name="m3uMetamorph" provider-name="i96751414" version="1.0.0+matrix.1">
+    <requires>
+        <import addon="xbmc.python" version="3.0.0"/>
+        <import addon="script.module.web-pdb" version="1.5.6"/>
+    </requires>
+    <extension point="xbmc.python.script" library="default.py">
+        <provides>executable</provides>
+    </extension>
+    <extension point="xbmc.service" library="service.py"/>
+    <extension point="xbmc.python.module" library="resources/lib/"/>
+    <extension point="xbmc.addon.metadata">
+        <platform>all</platform>
+        <license>GPL-2.0-or-later</license>
+        <forum></forum>
+        <source></source>
+        <summary lang="en_GB">m3u Converter for Kodi</summary>
+        <description lang="en_GB">Tool for easy conversion of m3u feeds to STRM files that can be cataloged in Kodi</description>
+        <platform>all</platform>
+        <news>
+- v1.0.0.0 
+  First version        
+        </news>
+        <assets>
+            <icon>icon.png</icon>
+            <screenshot>resources/images/screenshot-1.jpg</screenshot>
+            <screenshot>resources/images/screenshot-2.jpg</screenshot>
+            <screenshot>resources/images/screenshot-3.jpg</screenshot>
+        </assets>
+    </extension>
+</addon>
