@@ -104,29 +104,34 @@ def refresh_from_m3u(cleanrun = False, generate_groups = True, preview = False):
     LogManagement.info(f'Generate Groups has been set to {generate_groups}.')
     LogManagement.info(f'Preview mode has been set to {preview}.')
 
-    m3uParse = m3uParser(in_generate_groups=generate_groups, in_preview=preview, in_cleanrun=cleanrun)
+    m3uParse = m3uParser(_generate_groups=generate_groups, _preview=preview, _cleanrun=cleanrun)
     m3uParse.parse()
+    m3uParse.create_strm()
+    m3uParse.generate_extm3u_other_file()
 
     # Your messages
     messages = [
         "Finished parsing m3u playlist",
+        f'{m3uParse.num_new_movies} new movies were added',
+        f'{m3uParse.num_new_movies} new tv show episodes were added\n',
+        f'{m3uParse.groups.num_groups} new groups added',
+        f'{m3uParse.groups.num_provider_groups} groups in playlist\n'
         f'{m3uParse.num_titles_skipped} titles skipped',
         f'{m3uParse.num_movies_skipped} movies skipped',
         f'{m3uParse.num_series_skipped} series skipped',
-        f'{m3uParse.num_other_skipped} other skipped',
-        f'{m3uParse.num_new_movies} new movies were added',
-        f'{m3uParse.num_new_movies} new tv show episodes were added',
+        f'{m3uParse.num_other_skipped} other skipped\n',
         f'{m3uParse.num_errors} errors writing strm file/s',
-        f'{m3uParse.groups.num_groups} new groups added',
-        f'{m3uParse.groups.num_provider_groups} groups in playlist'
     ]
+
+    for message in messages:
+        LogManagement.info(message)
 
     # Concatenate the messages into one string
     message_text = "\n".join(messages)
 
     # Display the messages in a dialog
     dialog = xbmcgui.Dialog()
-    dialog.textviewer("Parsing Status", message_text)
+    dialog.textviewer("Parsing result", message_text)
 
     update_library = utils.get_setting("update_library")
 

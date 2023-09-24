@@ -3,182 +3,92 @@ from resources.lib.GroupManagement import Groups
 from resources.lib.FileManagement import m3uFileHandler
 from resources.lib import LogManagement
 from resources.lib import utils
+from enum import Enum
 
 import os
 import xbmcgui
 import xbmcvfs
 
-class m3uParser:
-    groups = None
-    logger = None
-    provider = None
-    m3u_extinf_Url = None
-    playlist_data_diff = None
-    preview = False
-    playListData = None
+class ExtM3UEntry:
+    extinf = None
+    url = None
+    id = None
+    name = None
+    title = None
+    subfolder =  None
+    filename =  None
+    logo =er =  None
+    include = None    
+    group_title = None
+    type = None
 
-    num_titles_skipped = 0
-    num_new_series = 0
-    num_new_movies = 0
-    num_errors = 0
-    num_series_skipped = 0
-    num_movies_skipped = 0
-    num_other_skipped = 0
+    def __init__(self, extinf=None, extinf_url=None):
+        self.extinf = extinf  # EXTINF extinf_line
+        self.url = extinf_url
 
-    def __init__(self, in_generate_groups = None, in_preview=False, in_cleanrun=False):
+        self.parse_extinf(extinf)
 
-        self.preview = in_preview
+    def __str__(self):
+        return f'{{ "name": "{self.name}", "logo": "{self.logo}", "group_title": "{self.group_title}", "title": "{self.title}", "subfolder": "{self.subfolder}", "filename": "{self.filename}", "include": "{self.include}", "url": "{self.url}"}},'
 
-        file_management = m3uFileHandler()
-        file_management.get_m3u_file(in_cleanrun=in_cleanrun)
+    def parse_extinf(self, extinf):
+        if extinf:
+            self.id = self.regex_search('tvg-id="([^"]*)"', extinf)
+            self.name = self.regex_search('tvg-name="([^"]*)"', extinf)
+            self.logo = self.regex_search('tvg-logo="([^"]*)"', extinf)
+            self.group_title = self.regex_search('group-title="([^"]*)"', extinf)
 
-        #import web_pdb; web_pdb.set_trace()
+            self.type = None
 
-        self.playListData = self.open_file_with_progress(utils.get_playlist_path())
-
-        self.playlist_data_diff = self.Check_For_Differences(file_management.playlist_temp_path, in_cleanrun = False)
-
-        self.groups = Groups(generate_groups = in_generate_groups, playlist_data=self.playlist_data_diff)
-        
-    def Check_For_Differences(self, playlist_temp_path, in_cleanrun):
-        if in_cleanrun:
-            return
-
-        LogManagement.info(f'Working out differences since last run.')
-
-        playlist_data = self.diffs(playlist_temp_path, utils.get_playlist_path())
-        
-        LogManagement.info(f'Found {len(playlist_data)} differences to process.')
-
-        return playlist_data
-
-    def parse(self):
-        #import web_pdb; web_pdb.set_trace()
-
-        dialog = xbmcgui.DialogProgress()
-        dialog.create(heading= "Processing playlist titles")
-
-        count = 0
-
-        for extinf_url, extinf_line in self.playlist_data_diff.items():
-            count += 1
-            progress = count * 100 // len(self.playlist_data_diff.items())
-            dialog.update(percent=progress)
-
-            # Create an ExtM3UEntry instance
-            entry = ExtM3UEntry(extinf=extinf_line, extinf_url=extinf_url)
-
-            if not self.check_title_include(extinf_line):
-                 self.num_titles_skipped += 1
-                 continue
-            else:
-                 include_from_title_check = True
-
-            tvgname = re.search('tvg-name="([^"]+)"', extinf_line)
-
-            if tvgname and 'tvg-name' in tvgname.group(0):
-
-                if '[Series]' in extinf_line or 'Series:' in extinf_line:
-                    titleType = 'Series'
-                elif '[VOD]' in extinf_line or 'VOD:' in extinf_line or '(VOD)' in extinf_line:
-                    titleType = 'Movies'
-                else:
-                    titleType = 'Other'
-                #     LogManagement.info(f'TitleType: extinf_line {extinf_line} was skipped')
-                #     continue
-
-                tvgname = tvgname.group(1)
-                tvgname = re.sub(r'[<>:"/\\|?*\x00-\x1f.]', '', tvgname)
+            match = re.search(r'Series:|\[Series\]', extinf)
+            if match:
+                self.type = TypeEnum.Series
                 
-                if titleType == 'Series':
-                    if not include_from_title_check:
-                        self.num_series_skipped += 1
-                        continue
+                self.title = self.get_series_title_from_tvgname(self.name)
+                self.subfolder = self.get_series_subfolder_from_tvgname(self.name)
+                self.filename = self.get_series_filename_from_tvgname(self.name) + ".strm"
 
-                    title = self.get_title_from_tvgname(tvgname)
-                    subfolder = self.get_subfolder_from_tvgname(tvgname)
-                    filename = self.get_filename_from_tvgname(tvgname)
-                elif titleType == 'Movies':
-                    if not include_from_title_check:
-                        self.num_movies_skipped += 1
-                        continue
+            match = re.search(r'VOD:|\[VOD\]|(VOD)', extinf)
+            if match:
+                self.type = TypeEnum.Movie
 
-                    sub = re.sub(r"\[(?!\d{4}\])[^]]*\]", "", tvgname)
-                    filename = sub
-                    subfolder = sub
-                    title = sub
-                else:
-                    self.num_other_skipped += 1
-                    continue
+                self.title = self.get_movie_title_from_tvgname(self.name)
+                self.subfolder = self.get_movie_filename_from_tvgname(self.name)                
+                self.filename = self.get_movie_filename_from_tvgname(self.name) + ".strm"
 
-                dialog.update(percent=progress, message=title)
+            if not self.type:
+                self.type = TypeEnum.Other
+                self.title = self.get_series_title_from_tvgname(self.name)
+                self.include = False
 
-                params = {'filename': filename, 'title': title, 'titleType': titleType, 'sub_folder': subfolder, 'extinf_url': extinf_url}
+    def regex_search(self, pattern, value):
+        match = re.search(pattern, value)
+        if match:
+            return(match.group(1))
 
-                self.create_strm(params)
+    # This is a movie [PRE] [2022] ->
+    # This is a movie
+    def get_movie_title_from_tvgname(self, tvgname):
 
-        LogManagement.info("Finished parsing m3u playlist")
-        LogManagement.info(f"{self.num_titles_skipped} titles skipped")
-        LogManagement.info(f"{self.num_series_skipped} series skipped")
-        LogManagement.info(f"{self.num_movies_skipped} movies skipped")
-        LogManagement.info(f"{self.num_other_skipped} other skipped")
-        LogManagement.info(f"{self.num_new_movies} new movies were added")
-        LogManagement.info(f"{self.num_new_movies} new tv show episodes were added")
-        LogManagement.info(f"{self.num_errors} errors writing strm file/s")
+        pattern = r"\s*\[[^\]]*\]"
+        match = re.sub(pattern, "", tvgname)
 
-        dialog.close
-        LogManagement.info("Parsing is done!")                      
+        return(match)
 
-    def create_strm(self,params):
-        global share_user_name
-        global share_password
+    # This is a movie [PRE] [2022] ->
+    # This is a movie [2022]
+    def get_movie_filename_from_tvgname(self, tvgname):
+        pattern = r"\[(?!\d{4}\])[^]]*\]"
+        match = re.sub(pattern, "", tvgname)
 
-        output_path = utils.get_outputpath() #xbmcvfs.translatePath(f"special://home/{ADDON.getAddonInfo('id')}/{provider}")
-        LogManagement.info(f"Output path is set to {output_path}")
+        pattern = r"[@$%&\\/:\*\?\"'<>\|~`#\^\+=\{\}\[\];!]"
+        match = re.sub(pattern, "", match)
 
-        titleType = params['titleType']
-        titleType = m3uFileHandler.cleanup_filename(titleType)
+        return(match)
 
-        filename = re.sub(r'[<>:"/\\|?*\x00-\x1f.]', '', params['filename'])
-        filename = m3uFileHandler.cleanup_filename(filename)
-
-        title = params['title']
-        title = m3uFileHandler.cleanup_filename(title)
-
-        sub_folder = params['sub_folder']
-        sub_folder = m3uFileHandler.cleanup_filename(sub_folder)
-
-        if titleType == 'Series':
-            output_path = os.path.join(output_path, f'{titleType}/{title}/{sub_folder}')
-        else:
-            output_path = os.path.join(output_path, f'{titleType}/{filename}')
-
-        output_strm = os.path.join(output_path, filename + '.strm')
-
-        if self.preview:
-            return
-
-        if not xbmcvfs.exists(output_strm):
-            if not xbmcvfs.exists(output_path):
-                xbmcvfs.mkdir(output_path)
-
-            try:
-                with open(output_strm, 'w', encoding='utf-8') as f:
-                    f.write(params['extinf_url'])
-
-                    if titleType == 'Series':
-                        self.num_new_series += 1
-                    elif titleType == 'Movies':
-                        self.num_new_movies += 1
-
-                    return
-            except Exception as e:
-                LogManagement.error(e.with_traceback)
-                self.num_errors += 1
-        else:
-            self.num_movies_skipped += 1               
-
-    def get_title_from_tvgname(self, tvgname):
+    # This is a series - S01 This is a series - S01E01
+    # This is a series -
+    def get_series_title_from_tvgname(self, tvgname):
         pattern = r'^(.*?) S\d+'
         match = re.search(pattern, tvgname)
 
@@ -189,7 +99,9 @@ class m3uParser:
         
         return(title)
 
-    def get_subfolder_from_tvgname(self, tvgname):
+    # This is a series - S01 This is a series - S01E01
+    # This is a series - S01
+    def get_series_subfolder_from_tvgname(self, tvgname):
         pattern = r'^(.*?)\bS\d{1,2}'
         match = re.match(pattern, tvgname)
 
@@ -197,10 +109,15 @@ class m3uParser:
             subfolder = match[0]
         else:
             return('')
-        
+
+        pattern = r"[@$%&\\/:\*\?\"'<>\|~`#\^\+=\{\}\[\];!]"
+        match = re.sub(pattern, "", match[0])
+
         return(subfolder)
 
-    def get_filename_from_tvgname(self, tvgname):
+    # This is a series - S01 This is a series - S01E01
+    #                        This is a series - S01E01
+    def get_series_filename_from_tvgname(self, tvgname):
         pattern = r'^.*S\d{2}\s+(.*)$'
         match = re.search(pattern, tvgname)
 
@@ -208,31 +125,162 @@ class m3uParser:
             filename = match[1]
         else:
             return('')
-        
+
+        pattern = r"[@$%&\\/:\*\?\"'<>\|~`#\^\+=\{\}\[\];!]"
+        match = re.sub(pattern, "", match[0])
+
         return(filename)
 
-    def check_title_include(self, extinf_line):
-        tvgIdMatch = re.search('tvg-id=""', extinf_line)
+# Define an enum class
+class TypeEnum(Enum):
+    Series = 'Series'
+    Movie = 'Movie'
+    Other = 'Other'
+
+class m3uParser:
+    m3uEntries = []
+    m3uEntriesOther = []
+    groups = None
+    logger = None
+    provider = None
+    m3u_extinf_Url = None
+    preview = False
+    playListData = None
+    cleanrun = None
+
+    num_titles_skipped = 0
+    num_new_series = 0
+    num_new_movies = 0
+    num_errors = 0
+    num_series_skipped = 0
+    num_movies_skipped = 0
+    num_other_skipped = 0
+
+    def __init__(self, _generate_groups = None, _preview=False, _cleanrun=False):
+
+        self.preview = _preview
+
+        self.cleanrun = _cleanrun
+
+        m3u_file_handler = m3uFileHandler()
+        m3u_file_handler.get_m3u_file(_cleanrun=self.cleanrun)
+
+        self.playListData = self.open_file_with_progress(utils.get_playlist_path())
+
+        self.Check_For_Differences(m3u_file_handler.current_playlist_path)
+
+        self.groups = Groups(generate_groups = _generate_groups, playlist_data=self.playListData)
         
-        if not tvgIdMatch:
-            self.num_titles_skipped += 1
-            return(False)
-
-        grouptitleMatch = re.search('group-title="([^"]+)"', extinf_line)
-        if grouptitleMatch is None:
-            self.num_titles_skipped += 1
-            return(False)
-
-        groupname = grouptitleMatch.group(1)
-
-        #import web_pdb; web_pdb.set_trace()
-
-        # Check if group should be included
-        if not self.groups.check_group_inclusion(groupname):
-            self.num_titles_skipped += 1
-            return(False)
+    def Check_For_Differences(self, _current_playlist_path):
+        if self.cleanrun:
+            LogManagement.info(f'Found {len(self.playListData)} entries to process.')
+            
+            self.playListData = self.get_extinf_urls(utils.get_playlist_path())
+            LogManagement.info(f'Found {len(self.playListData)} entries to process.')
         else:
-            return(True)
+            LogManagement.info(f'Found {len(self.playListData)} differences to process.')
+
+            self.playListData = self.diffs(current_playlist_path=_current_playlist_path, new_playlist_path=utils.get_playlist_path())
+
+    def parse(self):
+        dialog = xbmcgui.DialogProgress()
+        dialog.create(heading="Parsing entries in playlist...")
+        count = 0
+
+        for extinf_url, extinf_line in self.playListData.items():
+            count += 1
+            progress = count * 100 // len(self.playListData.items())
+            dialog.update(percent=progress)
+
+            if not 'tvg-id=""' in extinf_line:
+                continue
+
+            m3uEntry = ExtM3UEntry(extinf=extinf_line, extinf_url=extinf_url)
+
+            # Check if group should be included
+            m3uEntry.include = self.groups.check_group_inclusion(m3uEntry.group_title)
+
+            if m3uEntry.type == TypeEnum.Other:
+                self.m3uEntriesOther.append(m3uEntry)
+            else:
+                self.m3uEntries.append(m3uEntry)
+
+            dialog.update(percent=progress, message=m3uEntry.title)
+
+        dialog.close
+
+    def generate_extm3u_other_file(self):
+        try:
+            with open(utils.get_outputpath_other(), 'w', encoding='utf-8') as f:
+                for entry in self.m3uEntriesOther:
+                    extinf_line = f'#EXTINF:-1 tvg-id="{entry.id}" tvg-name="{entry.name}" tvg-logo="{entry.logo}" group-title="{entry.group_title}",{entry.title}\n'
+                    f.write(extinf_line)
+                    f.write(entry.url + '\n')
+        except Exception as e:
+            # Handle any exceptions, such as file I/O errors
+            print(f"Error: {str(e)}")
+
+    # Usage:
+    # Replace 'm3uEntriesOther' with your list of entries and provide the desired output file path.
+    # generate_extm3u_file(m3uEntriesOther, 'output.extm3u')
+
+    def create_strm(self):
+        dialog = xbmcgui.DialogProgress()
+        dialog.create(heading="Creating titles to output folder...")
+        count = 0
+
+        for m3uEntry in self.m3uEntries:
+            count += 1
+            progress = count * 100 // len(self.playListData.items())
+            dialog.update(percent=progress)
+
+            if not m3uEntry.include:
+                if m3uEntry.type == TypeEnum.Series:
+                    self.num_series_skipped += 1
+                if m3uEntry.type == TypeEnum.Movie:
+                    self.num_movies_skipped += 1
+                if m3uEntry.type == TypeEnum.Other:
+                    self.num_other_skipped += 1
+
+                return
+
+            output_path = utils.get_outputpath() #xbmcvfs.translatePath(f"special://home/{ADDON.getAddonInfo('id')}/{provider}")
+
+            if m3uEntry.type == TypeEnum.Series:
+                output_path = os.path.join(output_path, f'{m3uEntry.type.value}/{m3uEntry.title}/{m3uEntry.subfolder}')
+            elif m3uEntry.type == TypeEnum.Movie:
+                output_path = os.path.join(output_path, f'{m3uEntry.type.value}/{m3uEntry.filename}')
+            else:
+                return
+            
+            output_strm = os.path.join(output_path, m3uEntry.filename)
+
+            if self.preview:
+                return
+
+            if not xbmcvfs.exists(output_strm):
+                if not xbmcvfs.exists(output_path):
+                    xbmcvfs.mkdir(output_path)
+
+                try:
+                    with open(output_strm, 'w', encoding='utf-8') as f:
+                        f.write(m3uEntry.url)
+
+                        if m3uEntry.type == TypeEnum.Series:
+                            self.num_new_series += 1
+                        elif m3uEntry.type == TypeEnum.Movie:
+                            self.num_new_movies += 1
+
+                        return
+                except Exception as e:
+                    LogManagement.error(e.with_traceback)
+                    self.num_errors += 1
+            else:
+                self.num_movies_skipped += 1
+            
+            dialog.update(percent=progress, message=m3uEntry.title)
+
+        dialog.close
 
     def get_extinf_urls(self, fileName):
         if not xbmcvfs.exists(fileName):
@@ -247,9 +295,6 @@ class m3uParser:
         count = 0
 
         for match in matches:
-            count+=1
-            progress = count * 100 // len(matches)
-
             extinf = match[0]
             extinf_url = match[1]
             extinf_url_dict[extinf_url] = extinf
@@ -286,9 +331,9 @@ class m3uParser:
         except IOError as e:
             dialog.close()
      
-    def diffs(self, currentFile, newFile):
-        currentM3uDict = self.get_extinf_urls(currentFile)
-        newM3uDict = self.get_extinf_urls(newFile)
+    def diffs(self, current_playlist_path, new_playlist_path):
+        currentM3uDict = self.get_extinf_urls(current_playlist_path)
+        newM3uDict = self.get_extinf_urls(new_playlist_path)
 
         keys1 = set(currentM3uDict.keys())
         keys2 = set(newM3uDict.keys())
@@ -301,35 +346,3 @@ class m3uParser:
         result = {**diff_items1, **diff_items2}
 
         return(result)
-    
-class ExtM3UEntry:
-    def __init__(self, extinf, extinf_url):
-        self.extinf = extinf  # EXTINF extinf_line
-        self.extinf_url = extinf_url
-        self.tvg_id = None
-        self.tvg_name = None
-        self.tvg_logo = None
-        self.group_title = None
-        self.tvg_include = None
-        # Parse the EXTINF extinf_line to set additional properties
-        self.parse_extinf(extinf)
-
-        if m3uParser.check_title_include(extinf):
-            self.tvg_include = True
-
-    def parse_extinf(self, extinf):
-        if extinf:
-            # Split the EXTINF extinf_line to extract properties
-            parts = extinf.split(' ')
-            for part in parts:
-                if part.startswith('tvg-id='):
-                    self.tvg_id = part.split('tvg-id=')[1].strip('"')
-                elif part.startswith('tvg-name='):
-                    self.tvg_name = part.split('tvg-name=')[1].strip('"')
-                elif part.startswith('tvg-logo='):
-                    self.tvg_logo = part.split('tvg-logo=')[1].strip('"')
-                elif part.startswith('group-title='):
-                    self.group_title = part.split('group-title=')[1].strip('"')
-
-    def __str__(self):
-        return f"#EXTINF:-1 tvg-id=\"{self.tvg_id}\" tvg-name=\"{self.tvg_name}\" tvg-logo=\"{self.tvg_logo}\" group-title=\"{self.group_title}\",{self.extinf}\n{self.extinf_url}"

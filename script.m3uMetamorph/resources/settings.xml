@@ -2,6 +2,7 @@
 <settings>
     <category label="General">
         <setting id="output_path" type="folder" label="Output path: " default="" option="writeable"/>
+        <setting id="output_path_other" type="file" label="Output path other: " default="" option="writeable"/>
         <setting id="playlist_url" type="text" label="30006" default=""/>
         <setting id="provider_name" type="text" label="30007" default=""/>
         <setting id="update_library" type="bool" label="Update library" default=""/>

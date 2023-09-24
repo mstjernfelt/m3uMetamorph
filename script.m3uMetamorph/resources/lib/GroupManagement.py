@@ -18,6 +18,8 @@ class Groups:
 
         if generate_groups:
             #Load groups from playlist
+            LogManagement.info(f'Found {len(playlist_data)} entries to get groups from.')
+
             playlistGroupData = self.get_groups_from_playlist(playlist_data)
 
             # Load existing JSON data from file

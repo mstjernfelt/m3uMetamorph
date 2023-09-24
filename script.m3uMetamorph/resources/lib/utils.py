@@ -48,6 +48,15 @@ def get_outputpath():
 
     return output_path
 
+def get_outputpath_other():
+    output_path = get_setting("output_path_other")
+    output_path = output_path.rstrip('/')
+    output_path = output_path.rstrip('\\')
+
+    output_path = f"{output_path}/{get_provider_name()}/"
+
+    return output_path
+
 def get_playlist_path():
     home = xbmcvfs.translatePath('special://home')
     playlist_path = f"{home}{get_provider_name()}/playlist.m3u"

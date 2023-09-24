@@ -11,19 +11,19 @@ from resources.lib import utils
 
 class m3uFileHandler():
 
-    playlist_temp_path = ""
+    current_playlist_path = ""
     logger = None
     # Create a progress dialog
     dialog = xbmcgui.DialogProgress()
 
-    def get_m3u_file(self, in_cleanrun=False) -> str:
+    def get_m3u_file(self, _cleanrun=False) -> str:
         # Check if the URL is a local file path or a remote URL
         LogManagement.info(f'Loading playlist from {utils.get_playlist_url()}.')
 
         # Use the addon_path as needed
         LogManagement.info(f'Playlist save path: {utils.get_playlist_path()}.')
 
-        if in_cleanrun:
+        if _cleanrun:
             if xbmcvfs.exists(utils.get_playlist_path()):
                 # Delete the file
                 xbmcvfs.delete(utils.get_playlist_path())
@@ -46,12 +46,12 @@ class m3uFileHandler():
             #temp_file = xbmcvfs.File(temp_file_path, 'w')
 
             # get the path of the temporary file
-            self.playlist_temp_path = temp_file_path
+            self.current_playlist_path = temp_file_path
 
             # use shutil.copy() to copy the contents of the source file to the temporary file
-            LogManagement.info(f"Copy current playlist ({utils.get_playlist_path()}) to temp ({self.playlist_temp_path})")
+            LogManagement.info(f"Copy current playlist ({utils.get_playlist_path()}) to temp ({self.current_playlist_path})")
 
-            xbmcvfs.copy(utils.get_playlist_path(), self.playlist_temp_path)
+            xbmcvfs.copy(utils.get_playlist_path(), self.current_playlist_path)
 
         if utils.get_playlist_url().startswith('http') or utils.get_playlist_url().startswith('https'):
             if not xbmcvfs.exists(utils.get_outputpath()):
