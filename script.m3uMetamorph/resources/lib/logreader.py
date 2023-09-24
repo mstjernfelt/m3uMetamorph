@@ -3,7 +3,7 @@
 import os
 from io import FileIO
 
-from resources.lib.utils import decode
+from resources.lib.Utils import decode
 
 SEPARATOR = b"\n"
 

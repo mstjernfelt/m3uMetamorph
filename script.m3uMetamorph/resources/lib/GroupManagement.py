@@ -4,7 +4,7 @@ import xbmc
 import xbmcvfs
 
 from resources.lib import LogManagement
-from resources.lib import utils
+from resources.lib import Utils
 
 class Groups:
     existingGroupData = ''
@@ -13,7 +13,7 @@ class Groups:
     num_provider_groups = 0
 
     def __init__(self, playlist_data = None, generate_groups = None):
-        LogManagement.info(f'Group settings file path: {utils.get_group_json_path()}.')
+        LogManagement.info(f'Group settings file path: {Utils.get_group_json_path()}.')
         #import web_pdb; web_pdb.set_trace()
 
         if generate_groups:
@@ -37,9 +37,9 @@ class Groups:
         #import web_pdb; web_pdb.set_trace()
         existingData = ""
 
-        if xbmcvfs.exists(utils.get_group_json_path()):
+        if xbmcvfs.exists(Utils.get_group_json_path()):
             try:
-                with xbmcvfs.File(utils.get_group_json_path(), 'r') as f:
+                with xbmcvfs.File(Utils.get_group_json_path(), 'r') as f:
                     self.existingGroupData = json.load(f)
 
                     if len(self.existingGroupData) == 0:
@@ -92,9 +92,9 @@ class Groups:
         self.existingGroupData = {'groups': existing_groups}
 
     def save(self) -> int:
-        if xbmcvfs.exists(utils.get_group_json_path()):
+        if xbmcvfs.exists(Utils.get_group_json_path()):
             try:
-                with xbmcvfs.File(utils.get_group_json_path(), 'r') as f:
+                with xbmcvfs.File(Utils.get_group_json_path(), 'r') as f:
                      old_data = json.load(f)
             except json.decoder.JSONDecodeError as e:
                 old_data = {}
@@ -108,10 +108,10 @@ class Groups:
             self.existingGroupData = newGroupData
 
         # Save the updated JSON data to file
-        with xbmcvfs.File(utils.get_group_json_path(), 'w+') as f:
+        with xbmcvfs.File(Utils.get_group_json_path(), 'w+') as f:
              json.dump(self.existingGroupData, f, indent=4)
 
-        with xbmcvfs.File(utils.get_group_json_path(), 'r') as f:
+        with xbmcvfs.File(Utils.get_group_json_path(), 'r') as f:
             old_data = json.load(f)
 
         oldDataCount = 0

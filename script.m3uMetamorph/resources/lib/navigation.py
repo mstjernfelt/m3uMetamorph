@@ -7,9 +7,9 @@ import json
 import xbmcgui
 
 from resources.lib import logviewer
-from resources.lib import utils
+from resources.lib import Utils
 from resources.lib import LogManagement
-from resources.lib.M3uManagement import m3uParser
+from resources.lib.M3uManagement import M3UParser
 from resources.lib.GroupManagement import Groups
 
 def has_addon(addon_id):
@@ -24,11 +24,11 @@ def get_opts():
     handlers = []
 
     # Refresh from playlist (Incremental)
-    headings.append(utils.translate(30001))
+    headings.append(Utils.translate(30001))
     handlers.append(lambda: refresh_from_m3u())
 
     # Refresh from playlist (Clean run)
-    headings.append(utils.translate(30002))
+    headings.append(Utils.translate(30002))
     handlers.append(lambda: refresh_from_m3u(cleanrun=True))
 
     # Refresh from playlist (Clean run)
@@ -40,8 +40,8 @@ def get_opts():
     handlers.append(lambda: update_library())
 
     # Open Settings
-    headings.append(utils.translate(30011))
-    handlers.append(utils.open_settings)
+    headings.append(Utils.translate(30011))
+    handlers.append(Utils.open_settings)
 
     # Open Settings
     headings.append("Dispaly Tree View")
@@ -91,20 +91,21 @@ def edit_groups():
     #import web_pdb; web_pdb.set_trace()
 
     # Convert the updated dictionary back to JSON
-    with open(utils.get_group_json_path(), 'w+') as f:
+    with open(Utils.get_group_json_path(), 'w+') as f:
         json.dump(data, f, indent=4)
 
     # Now, `updated_json_data` contains the edited JSON data
 
 
 def refresh_from_m3u(cleanrun = False, generate_groups = True, preview = False):
-    LogManagement.info(f'Media output Path has been set to {utils.get_outputpath()}.')
-    LogManagement.info(f'Playlist URL has been set to {utils.get_playlist_url}.')
-    LogManagement.info(f'IPTV Provider has been set to {utils.get_provider_name()}.')
+    LogManagement.info(f'Media output Path has been set to {Utils.get_outputpath()}.')
+    LogManagement.info(f'Playlist URL has been set to {Utils.get_playlist_url}.')
+    LogManagement.info(f'IPTV Provider has been set to {Utils.get_provider_name()}.')
     LogManagement.info(f'Generate Groups has been set to {generate_groups}.')
     LogManagement.info(f'Preview mode has been set to {preview}.')
 
-    m3uParse = m3uParser(_generate_groups=generate_groups, _preview=preview, _cleanrun=cleanrun)
+    m3uParse = M3UParser(generate_groups=generate_groups, preview=preview, cleanrun=cleanrun)
+
     m3uParse.parse()
     m3uParse.create_strm()
     m3uParse.generate_extm3u_other_file()
@@ -116,7 +117,6 @@ def refresh_from_m3u(cleanrun = False, generate_groups = True, preview = False):
         f'{m3uParse.num_new_movies} new tv show episodes were added\n',
         f'{m3uParse.groups.num_groups} new groups added',
         f'{m3uParse.groups.num_provider_groups} groups in playlist\n'
-        f'{m3uParse.num_titles_skipped} titles skipped',
         f'{m3uParse.num_movies_skipped} movies skipped',
         f'{m3uParse.num_series_skipped} series skipped',
         f'{m3uParse.num_other_skipped} other skipped\n',
@@ -133,7 +133,7 @@ def refresh_from_m3u(cleanrun = False, generate_groups = True, preview = False):
     dialog = xbmcgui.Dialog()
     dialog.textviewer("Parsing result", message_text)
 
-    update_library = utils.get_setting("update_library")
+    update_library = Utils.get_setting("update_library")
 
     if update_library:
         xbmc.executebuiltin(function="UpdateLibrary(video)", wait=False)
@@ -158,8 +158,8 @@ def display_tree():
     tree_view.display_tree()
 
 def show_log(old):
-    content = logviewer.get_content(old, utils.get_inverted(), utils.get_lines(), True)
-    logviewer.window(utils.ADDON_NAME, content, default=utils.is_default_window())
+    content = logviewer.get_content(old, Utils.get_inverted(), Utils.get_lines(), True)
+    logviewer.window(Utils.ADDON_NAME, content, default=Utils.is_default_window())
 
 def run():
     if len(sys.argv) > 1:
@@ -175,7 +175,7 @@ def run():
             raise NotImplementedError("Method '{}' does not exist".format(method))
     else:
         headings, handlers = get_opts()
-        index = xbmcgui.Dialog().select(utils.ADDON_NAME, headings)
+        index = xbmcgui.Dialog().select(Utils.ADDON_NAME, headings)
 
         if index >= 0:
             handlers[index]()

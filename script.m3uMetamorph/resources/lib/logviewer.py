@@ -11,7 +11,7 @@ import xbmcvfs
 
 from resources.lib.dialog import ACTION_PARENT_DIR, KEY_NAV_BACK, ACTION_PREVIOUS_MENU
 from resources.lib.logreader import LogReader
-from resources.lib.utils import ADDON_PATH, translate, str_to_unicode
+from resources.lib.Utils import ADDON_PATH, translate, str_to_unicode
 
 
 def get_version_number():

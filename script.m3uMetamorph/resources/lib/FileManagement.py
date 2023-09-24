@@ -7,7 +7,7 @@ import xbmcgui
 import xbmc
 
 from resources.lib import LogManagement
-from resources.lib import utils
+from resources.lib import Utils
 
 class m3uFileHandler():
 
@@ -18,26 +18,26 @@ class m3uFileHandler():
 
     def get_m3u_file(self, _cleanrun=False) -> str:
         # Check if the URL is a local file path or a remote URL
-        LogManagement.info(f'Loading playlist from {utils.get_playlist_url()}.')
+        LogManagement.info(f'Loading playlist from {Utils.get_playlist_url()}.')
 
         # Use the addon_path as needed
-        LogManagement.info(f'Playlist save path: {utils.get_playlist_path()}.')
+        LogManagement.info(f'Playlist save path: {Utils.get_playlist_path()}.')
 
         if _cleanrun:
-            if xbmcvfs.exists(utils.get_playlist_path()):
+            if xbmcvfs.exists(Utils.get_playlist_path()):
                 # Delete the file
-                xbmcvfs.delete(utils.get_playlist_path())
+                xbmcvfs.delete(Utils.get_playlist_path())
 
-                LogManagement.info(f"cleanrun was set, the file {utils.get_playlist_path()} has been deleted.")
+                LogManagement.info(f"cleanrun was set, the file {Utils.get_playlist_path()} has been deleted.")
             else:
-                LogManagement.info(f"cleanrun was set, The file {utils.get_playlist_path()} does not exist.")
+                LogManagement.info(f"cleanrun was set, The file {Utils.get_playlist_path()} does not exist.")
 
         # Get the temporary directory path
         temp_dir = xbmcvfs.translatePath('special://home/')            
         temp_file_path = tempfile.mktemp(dir=temp_dir)
 
-        if xbmcvfs.exists(utils.get_playlist_path()):
-            LogManagement.info(f"m3u file exists: {utils.get_playlist_path()}")
+        if xbmcvfs.exists(Utils.get_playlist_path()):
+            LogManagement.info(f"m3u file exists: {Utils.get_playlist_path()}")
             # create a temporary file
 
             # Generate a unique name for the temporary file
@@ -49,13 +49,13 @@ class m3uFileHandler():
             self.current_playlist_path = temp_file_path
 
             # use shutil.copy() to copy the contents of the source file to the temporary file
-            LogManagement.info(f"Copy current playlist ({utils.get_playlist_path()}) to temp ({self.current_playlist_path})")
+            LogManagement.info(f"Copy current playlist ({Utils.get_playlist_path()}) to temp ({self.current_playlist_path})")
 
-            xbmcvfs.copy(utils.get_playlist_path(), self.current_playlist_path)
+            xbmcvfs.copy(Utils.get_playlist_path(), self.current_playlist_path)
 
-        if utils.get_playlist_url().startswith('http') or utils.get_playlist_url().startswith('https'):
-            if not xbmcvfs.exists(utils.get_outputpath()):
-                xbmcvfs.mkdirs(utils.get_outputpath())
+        if Utils.get_playlist_url().startswith('http') or Utils.get_playlist_url().startswith('https'):
+            if not xbmcvfs.exists(Utils.get_outputpath()):
+                xbmcvfs.mkdirs(Utils.get_outputpath())
 
             # Set the properties of the progress dialog
             self.dialog.create('Task Progress', f"Downloading playlist...")
@@ -64,9 +64,9 @@ class m3uFileHandler():
             # In this example, we execute the task in the main thread for simplicity
 
             try:           
-                urllib.request.urlretrieve(utils.get_playlist_url(), temp_file_path, reporthook = self.progress_callback)
+                urllib.request.urlretrieve(Utils.get_playlist_url(), temp_file_path, reporthook = self.progress_callback)
 
-                playlist_path = utils.get_playlist_path()
+                playlist_path = Utils.get_playlist_path()
                 result = xbmcvfs.copy(temp_file_path, playlist_path)
 
                 if not result:
@@ -77,11 +77,11 @@ class m3uFileHandler():
             # Close the progress dialog
             self.dialog.close()
 
-            LogManagement.info(f'Playlist downloaded to {utils.get_playlist_path()}')
+            LogManagement.info(f'Playlist downloaded to {Utils.get_playlist_path()}')
         else:
-            xbmcvfs.copy(utils.get_playlist_url(), utils.get_playlist_path())
+            xbmcvfs.copy(Utils.get_playlist_url(), Utils.get_playlist_path())
 
-            LogManagement.info(f'Playlist copied to {utils.get_playlist_path()}')
+            LogManagement.info(f'Playlist copied to {Utils.get_playlist_path()}')
 
         LogManagement.info(f'Loaded playlist successfully.')
 
