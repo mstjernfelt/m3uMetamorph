@@ -1,5 +1,6 @@
 import re
 import os
+import json
 import xbmcgui
 import xbmcvfs
 from enum import Enum
@@ -15,25 +16,39 @@ class TypeEnum(Enum):
     Movie = 'Movie'
     Other = 'Other'
 
-
 class ExtM3U_Entry:
     def __init__(self, extinf=None, extinf_url=None):
-        self._extinf = extinf
-        self._url = extinf_url
-        self._id = None
-        self._name = None
-        self._title = None
-        self._subfolder = None
-        self._filename = None
-        self._logo = None
-        self._include = None
-        self._group_title = None
-        self._type = None
+        self.extinf = extinf
+        self.url = extinf_url
+        self.id = ""
+        self.name = ""
+        self.title = ""
+        self.subfolder = ""
+        self.filename = ""
+        self.logo = ""
+        self.include = ""
+        self.group_title = ""
+        self.type: TypeEnum = None
 
         self._parse_extinf(extinf)
 
     def __str__(self):
-        return f'{{ "name": "{self._name}", "logo": "{self._logo}", "group_title": "{self._group_title}", "title": "{self._title}", "subfolder": "{self._subfolder}", "filename": "{self._filename}", "include": "{self._include}", "url": "{self._url}"}},'
+        return f'{{ "name": "{self.name}", "type": "{self.type.value}", "logo": "{self.logo}", "group_title": "{self.group_title}", "title": "{self.title}", "subfolder": "{self.subfolder}", "filename": "{self.filename}", "include": "{self.include}", "url": "{self.url}"}}'
+
+    @property
+    def dictionary(self):
+        data = {
+            "name": self.name,
+            "type": self.type.value,
+            "group_title": self.group_title,
+            "title": self.title,
+            "subfolder": self.subfolder,
+            "filename": self.filename,
+            "include": self.include,
+            "url": self.url
+        }
+
+        return data
 
     def _parse_extinf(self, extinf):
          if extinf:
@@ -124,7 +139,6 @@ class ExtM3U_Entry:
 
         return(filename)
 
-
 class M3UParser:
     def __init__(self, generate_groups=None, preview=False, cleanrun=False):
         self.preview = preview
@@ -171,8 +185,10 @@ class M3UParser:
     num_series_skipped = 0
     num_movies_skipped = 0
     num_other_skipped = 0
+    num_series_exists = 0
+    num_movies_exists = 0
 
-    TVGIDCONST = 'tvg-id=""'
+    TVGIDCONST = 'tvg-id='
 
     def parse(self):
         dialog = xbmcgui.DialogProgress()
@@ -201,13 +217,32 @@ class M3UParser:
 
         dialog.close
 
+    def dumpjson(self, m3u_entries, file_name):
+        m3u_dict = []
+
+        for m3u_entry in m3u_entries:
+            m3u_dict.append(m3u_entry.dictionary)
+
+        with open(file_name, 'w') as json_file:
+            json.dump(m3u_dict, json_file, indent=4)
+
     def generate_extm3u_other_file(self):
         try:
-            with open(Utils.get_outputpath_other, 'w', encoding='utf-8') as f:
-                for entry in self.m3uEntriesOther:
-                    extinf_line = f'#EXTINF:-1 tvg-id="{entry.id}" tvg-name="{entry.name}" tvg-logo="{entry.logo}" group-title="{entry.group_title}",{entry.title}\n'
+            filename = Utils.get_tv_output_path()
+            LogManagement.info(f'Writing tv m3u: {filename}')
+
+            if os.path.exists(filename):
+                os.remove(filename)
+
+            with open(filename, 'w', encoding='utf-8') as f:
+                for m3u_entry in self.m3u_entries_other:
+                    if not m3u_entry.include:
+                        self.num_other_skipped += 1
+                        continue
+
+                    extinf_line = f'#EXTINF:-1 tvg-id="{m3u_entry.id}" tvg-name="{m3u_entry.name}" tvg-logo="{m3u_entry.logo}" group-title="{m3u_entry.group_title}",{m3u_entry.title}\n'
                     f.write(extinf_line)
-                    f.write(entry.url + '\n')
+                    f.write(m3u_entry.url + '\n')
         except Exception as e:
             # Handle any exceptions, such as file I/O errors
             print(f"Error: {str(e)}")
@@ -219,6 +254,7 @@ class M3UParser:
 
         for m3u_entry in self.m3u_entries:
             count += 1
+
             progress = count * 100 // len(self.play_list_data.items())
             dialog.update(percent=progress)
 
@@ -230,21 +266,17 @@ class M3UParser:
                 if m3u_entry.type == TypeEnum.Other:
                     self.num_other_skipped += 1
 
-                return
-
-            output_path = Utils.get_outputpath() #xbmcvfs.translatePath(f"special://home/{ADDON.getAddonInfo('id')}/{provider}")
-
             if m3u_entry.type == TypeEnum.Series:
-                output_path = os.path.join(output_path, f'{m3u_entry.type.value}/{m3u_entry.title}/{m3u_entry.subfolder}')
+                output_path = Utils.get_series_output_path()
+                output_path = os.path.join(output_path, f'{m3u_entry.title}/{m3u_entry.subfolder}')
             elif m3u_entry.type == TypeEnum.Movie:
-                output_path = os.path.join(output_path, f'{m3u_entry.type.value}/{m3u_entry.filename}')
-            else:
-                return
-            
+                output_path = Utils.get_movie_output_path()
+                output_path = os.path.join(output_path, f'{m3u_entry.subfolder}')
+
             output_strm = os.path.join(output_path, m3u_entry.filename)
 
             if self.preview:
-                return
+                continue
 
             if not xbmcvfs.exists(output_strm):
                 if not xbmcvfs.exists(output_path):
@@ -259,12 +291,14 @@ class M3UParser:
                         elif m3u_entry.type == TypeEnum.Movie:
                             self.num_new_movies += 1
 
-                        return
                 except Exception as e:
                     LogManagement.error(e.with_traceback)
                     self.num_errors += 1
             else:
-                self.num_movies_skipped += 1
+                if m3u_entry.type == TypeEnum.Series:
+                    self.num_series_exists += 1
+                elif m3u_entry.type == TypeEnum.Movie:
+                    self.num_movies_exists += 1
             
             dialog.update(percent=progress, message=m3u_entry.title)
 
@@ -345,6 +379,3 @@ class M3UParser:
         result = {**diff_items1, **diff_items2}
 
         return(result)
-
-# Constants
-EXTINF_PATTERN = '#EXTINF:-1'

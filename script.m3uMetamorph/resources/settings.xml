@@ -1,10 +1,22 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings>
     <category label="General">
-        <setting id="output_path" type="folder" label="Output path: " default="" option="writeable"/>
-        <setting id="output_path_other" type="file" label="Output path other: " default="" option="writeable"/>
+        <setting label="Movie Output" type="lsep"/>
+        <setting id="movie_output_path" type="folder" label="Output path:" default="" option="writeable"/>
+        
+        <setting label="Series Output" type="lsep"/>
+        <setting id="series_output_path" type="folder" label="Output path:" default="" option="writeable"/>
+        
+        <setting label="TV Output" type="lsep"/>
+        <setting id="tv_output_path" type="folder" label="Output Path:" default="" option="writeable"/>
+        <setting id="tv_output_filename" type="text" label="Filename:" default="" option="writeable"/>
+        
+        <setting label="Playlist" type="lsep"/>
         <setting id="playlist_url" type="text" label="30006" default=""/>
+        <setting id="xmltv_url" type="text" label="XmlTv url" default=""/>
         <setting id="provider_name" type="text" label="30007" default=""/>
+
+        <setting label="Misc" type="lsep"/>
         <setting id="update_library" type="bool" label="Update library" default=""/>
         <setting id="debug_mode" type="bool" label="Debug Mode" default="False" help="Debug Mode, enables Web-PDB imports"/>
     </category>

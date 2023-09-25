@@ -11,6 +11,7 @@ from resources.lib import Utils
 from resources.lib import LogManagement
 from resources.lib.M3uManagement import M3UParser
 from resources.lib.GroupManagement import Groups
+from resources.lib.XmlTV import XmlTv_Parser
 
 def has_addon(addon_id):
     return xbmc.getCondVisibility("System.HasAddon({})".format(addon_id)) == 1
@@ -98,7 +99,7 @@ def edit_groups():
 
 
 def refresh_from_m3u(cleanrun = False, generate_groups = True, preview = False):
-    LogManagement.info(f'Media output Path has been set to {Utils.get_outputpath()}.')
+    LogManagement.info(f'Media output Path has been set to {Utils.get_movie_output_path()}.')
     LogManagement.info(f'Playlist URL has been set to {Utils.get_playlist_url}.')
     LogManagement.info(f'IPTV Provider has been set to {Utils.get_provider_name()}.')
     LogManagement.info(f'Generate Groups has been set to {generate_groups}.')
@@ -110,16 +111,21 @@ def refresh_from_m3u(cleanrun = False, generate_groups = True, preview = False):
     m3uParse.create_strm()
     m3uParse.generate_extm3u_other_file()
 
+    xml_tv_parser = XmlTv_Parser(generate_groups=generate_groups, preview=preview, cleanrun=cleanrun)
+
+    m3uParse.dumpjson(m3uParse.m3u_entries, "C:\kodi\Output\MonsterIPTV\m3u_entries.json")
+    m3uParse.dumpjson(m3uParse.m3u_entries_other, "C:\kodi\Output\MonsterIPTV\m3u_entries_other.json")
+
     # Your messages
     messages = [
         "Finished parsing m3u playlist",
         f'{m3uParse.num_new_movies} new movies were added',
-        f'{m3uParse.num_new_movies} new tv show episodes were added\n',
-        f'{m3uParse.groups.num_groups} new groups added',
-        f'{m3uParse.groups.num_provider_groups} groups in playlist\n'
-        f'{m3uParse.num_movies_skipped} movies skipped',
-        f'{m3uParse.num_series_skipped} series skipped',
-        f'{m3uParse.num_other_skipped} other skipped\n',
+        f'{m3uParse.num_new_series} new tv show episodes were added',
+        f'{m3uParse.groups.num_groups} new groups where added to group setup\n',
+        f'{m3uParse.num_movies_skipped} movies skipped due to group setup',
+        f'{m3uParse.num_series_skipped} series skipped due to group setup',
+        f'{m3uParse.num_movies_exists} movie/s in playlist already exist',
+        f'{m3uParse.num_series_exists} serie/s in playlist already exist\n',
         f'{m3uParse.num_errors} errors writing strm file/s',
     ]
 

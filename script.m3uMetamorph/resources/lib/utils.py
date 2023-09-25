@@ -39,8 +39,8 @@ ADDON_PATH = str_to_unicode(ADDON.getAddonInfo("path"))
 ADDON_NAME = ADDON.getAddonInfo("name")
 ADDON_ID = ADDON.getAddonInfo("id")
 
-def get_outputpath():
-    output_path = get_setting("output_path")
+def get_movie_output_path():
+    output_path = get_setting("movie_output_path")
     output_path = output_path.rstrip('/')
     output_path = output_path.rstrip('\\')
 
@@ -48,18 +48,34 @@ def get_outputpath():
 
     return output_path
 
-def get_outputpath_other():
-    output_path = get_setting("output_path_other")
+def get_series_output_path():
+    output_path = get_setting("series_output_path")
     output_path = output_path.rstrip('/')
     output_path = output_path.rstrip('\\')
 
     output_path = f"{output_path}/{get_provider_name()}/"
 
+    return output_path
+
+def get_tv_output_path():
+    output_path = get_setting("tv_output_path")
+    tv_output_filename = get_setting("tv_output_filename")
+    output_path = output_path.rstrip('/')
+    output_path = output_path.rstrip('\\')
+
+    output_path = f"{output_path}/{get_provider_name()}/"
+    output_path = os.path.join(output_path, tv_output_filename)
     return output_path
 
 def get_playlist_path():
     home = xbmcvfs.translatePath('special://home')
     playlist_path = f"{home}{get_provider_name()}/playlist.m3u"
+
+    return playlist_path
+
+def get_xmltv_path():
+    home = xbmcvfs.translatePath('special://home')
+    playlist_path = f"{home}{get_provider_name()}/xmltv.xml"
 
     return playlist_path
 
@@ -71,6 +87,11 @@ def get_group_json_path():
 
 def get_playlist_url():
     playlist_url = get_setting("playlist_url")
+
+    return playlist_url
+
+def get_xmltv_url():
+    playlist_url = get_setting("xmltv_url")
 
     return playlist_url
 

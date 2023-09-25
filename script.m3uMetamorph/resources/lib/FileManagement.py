@@ -12,6 +12,7 @@ from resources.lib import Utils
 class m3uFileHandler():
 
     current_playlist_path = ""
+    current_xmltv_path = ""
     logger = None
     # Create a progress dialog
     dialog = xbmcgui.DialogProgress()
@@ -54,8 +55,8 @@ class m3uFileHandler():
             xbmcvfs.copy(Utils.get_playlist_path(), self.current_playlist_path)
 
         if Utils.get_playlist_url().startswith('http') or Utils.get_playlist_url().startswith('https'):
-            if not xbmcvfs.exists(Utils.get_outputpath()):
-                xbmcvfs.mkdirs(Utils.get_outputpath())
+            if not xbmcvfs.exists(Utils.get_movie_output_path()):
+                xbmcvfs.mkdirs(Utils.get_movie_output_path())
 
             # Set the properties of the progress dialog
             self.dialog.create('Task Progress', f"Downloading playlist...")
@@ -85,6 +86,58 @@ class m3uFileHandler():
 
         LogManagement.info(f'Loaded playlist successfully.')
 
+    def get_xmltv_file(self, _cleanrun=False) -> str:
+        LogManagement.info(f'Loading XmlTV from {Utils.get_xmltv_url()}.')
+
+        LogManagement.info(f'XmlTV save path: {Utils.get_xmltv_path()}.')
+
+        if _cleanrun:
+            if xbmcvfs.exists(Utils.get_xmltv_path()):
+                xbmcvfs.delete(Utils.get_xmltv_path())
+                LogManagement.info(f"cleanrun was set, the file {Utils.get_xmltv_path()} has been deleted.")
+            else:
+                LogManagement.info(f"cleanrun was set, The file {Utils.get_xmltv_path()} does not exist.")
+
+        temp_dir = xbmcvfs.translatePath('special://home/')            
+        temp_file_path = tempfile.mktemp(dir=temp_dir)
+
+        if xbmcvfs.exists(Utils.get_xmltv_path()):
+            LogManagement.info(f"XmlTV file exists: {Utils.get_xmltv_path()}")
+            LogManagement.info(f"Created temp file {temp_file_path}")
+
+            self.current_xmltv_path = temp_file_path
+
+            LogManagement.info(f"Copy current XmlTV file ({Utils.get_xmltv_path()}) to temp ({self.current_xmltv_path})")
+
+            xbmcvfs.copy(Utils.get_xmltv_path(), self.current_xmltv_path)
+
+        if Utils.get_playlist_url().startswith('http') or Utils.get_playlist_url().startswith('https'):
+            if not xbmcvfs.exists(Utils.get_movie_output_path()):
+                xbmcvfs.mkdirs(Utils.get_movie_output_path())
+
+            self.dialog.create('Task Progress', f"Downloading XmlTV file...")
+
+            try:           
+                urllib.request.urlretrieve(Utils.get_playlist_url(), temp_file_path, reporthook = self.progress_callback)
+
+                playlist_path = Utils.get_xmltv_path()
+                result = xbmcvfs.copy(temp_file_path, playlist_path)
+
+                if not result:
+                    LogManagement.error(f'Error copying XmlTV file to {playlist_path}')    
+            except:
+                xbmcvfs.delete(temp_file_path)
+
+            self.dialog.close()
+
+            LogManagement.info(f'XmlTV file downloaded to {Utils.get_xmltv_path()}')
+        else:
+            xbmcvfs.copy(Utils.get_playlist_url(), Utils.get_xmltv_path())
+
+            LogManagement.info(f'XmlTV file copied to {Utils.get_xmltv_path()}')
+
+        LogManagement.info(f'Loaded XmlTV file successfully.')
+
     def progress_callback(self, count, block_size, total_size):
         # Calculate the download percentage
         progress = count * block_size * 100 // total_size
@@ -97,3 +150,33 @@ class m3uFileHandler():
         new_string = re.sub(pattern, "", filename)
 
         return(new_string)
+    
+    def open_file_with_progress(self, file_path):
+        try:
+            dialog = xbmcgui.DialogProgress()
+            dialog.create('Opening file', 'Please wait while the file is being opened...')
+
+            contents = ''
+
+            # Open the file and read its contents
+            with xbmcvfs.File(file_path, 'r') as file:
+                total_bytes = file.size()
+                chunk_size = int(total_bytes / 10)  # Cast to integer
+                total_read = 0
+
+                while True:
+                    chunk = file.read(chunk_size)
+                    if not chunk:
+                        break
+
+                    contents += chunk
+                    total_read += len(chunk)
+
+                    # Update progress
+                    progress = int((total_read / total_bytes) * 100)
+                    dialog.update(progress)
+
+            return contents
+
+        except IOError as e:
+            dialog.close()
