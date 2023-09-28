@@ -111,14 +111,14 @@ class m3uFileHandler():
 
             xbmcvfs.copy(Utils.get_xmltv_path(), self.current_xmltv_path)
 
-        if Utils.get_playlist_url().startswith('http') or Utils.get_playlist_url().startswith('https'):
+        if Utils.get_xmltv_url().startswith('http') or Utils.get_xmltv_url().startswith('https'):
             if not xbmcvfs.exists(Utils.get_movie_output_path()):
                 xbmcvfs.mkdirs(Utils.get_movie_output_path())
 
             self.dialog.create('Task Progress', f"Downloading XmlTV file...")
 
             try:           
-                urllib.request.urlretrieve(Utils.get_playlist_url(), temp_file_path, reporthook = self.progress_callback)
+                urllib.request.urlretrieve(Utils.get_xmltv_url(), temp_file_path, reporthook = self.progress_callback)
 
                 playlist_path = Utils.get_xmltv_path()
                 result = xbmcvfs.copy(temp_file_path, playlist_path)
@@ -132,7 +132,7 @@ class m3uFileHandler():
 
             LogManagement.info(f'XmlTV file downloaded to {Utils.get_xmltv_path()}')
         else:
-            xbmcvfs.copy(Utils.get_playlist_url(), Utils.get_xmltv_path())
+            xbmcvfs.copy(Utils.get_xmltv_url(), Utils.get_xmltv_path())
 
             LogManagement.info(f'XmlTV file copied to {Utils.get_xmltv_path()}')
 

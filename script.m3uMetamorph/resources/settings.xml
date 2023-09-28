@@ -22,7 +22,7 @@
     </category>
     <category label="Filters">
         <setting label="M3u Filters" type="lsep"/>
-        <setting id="movie_include" type="text" label="Movie include regex" default="(VOD):"/>
-        <setting id="series_include" type="text" label="Series include regex" default="(Series:):"/>
+        <setting id="movie_include" type="text" label="Movie include regex" default="VOD:"/>
+        <setting id="series_include" type="text" label="Series include regex" default="Series:"/>
     </category>
 </settings>

@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
+import re
 import sys
 
 import xbmc
 import json
 import xbmcgui
 
-from resources.lib import logviewer
 from resources.lib import Utils
 from resources.lib import LogManagement
 from resources.lib.M3uManagement import M3UParser
@@ -37,6 +37,10 @@ def get_opts():
     handlers.append(lambda: edit_groups())
 
     # Refresh from playlist (Clean run)
+    headings.append("Edit TV groups")
+    handlers.append(lambda: edit_tv_groups())
+
+    # Refresh from playlist (Clean run)
     headings.append("Update Library")
     handlers.append(lambda: update_library())
 
@@ -58,45 +62,44 @@ def update_library():
     xbmc.executebuiltin(function="UpdateLibrary(video)")
 
 def edit_groups():
-    # Create a Kodi dialog
-    dialog = xbmcgui.Dialog()
-
-    # Create a list to store the edited data
     groups = Groups()
-
-    # Parse JSON data into a dictionary
-    data = groups.existingGroupData
-
-    # Create a Kodi dialog
     dialog = xbmcgui.Dialog()
 
-    # Create a list of group names for the multiselect dialog
-    group_names = [group['name'] for group in data['groups']]
+    preselected_indices = [index for index, group in enumerate(groups.existingGroupData['groups']) if group['include']]
 
-    # Create a list of preselected indices based on 'include' value
-    preselected_indices = [index for index, group in enumerate(data['groups']) if group['include']]
-
-    # Show the multiselect dialog
-    selected_indices = dialog.multiselect("Select Groups", group_names, preselect=preselected_indices)
+    selected_indices = dialog.multiselect("Select Media Groups", groups.media_group_names, preselect=preselected_indices)
 
     if selected_indices is None:
         return
 
-    # Update the 'include' value for the selected groups
-    for index, group in enumerate(data['groups']):
+    for index, group in enumerate(groups.existingGroupData['groups']):
         if index in selected_indices:
             group['include'] = True
         else:
             group['include'] = False
 
-    #import web_pdb; web_pdb.set_trace()
-
-    # Convert the updated dictionary back to JSON
     with open(Utils.get_group_json_path(), 'w+') as f:
-        json.dump(data, f, indent=4)
+        json.dump(groups.existingGroupData, f, indent=4)
 
-    # Now, `updated_json_data` contains the edited JSON data
+def edit_tv_groups():
+    groups = Groups()
+    dialog = xbmcgui.Dialog()
 
+    preselected_indices = [index for index, group in enumerate(groups.existingGroupData['groups']) if group['include']]
+
+    selected_indices = dialog.multiselect("Select TV Groups", groups.tv_group_names, preselect=preselected_indices)
+
+    if selected_indices is None:
+        return
+
+    for index, group in enumerate(groups.existingGroupData['groups']):
+        if index in selected_indices:
+            group['include'] = True
+        else:
+            group['include'] = False
+
+    with open(Utils.get_group_json_path(), 'w+') as f:
+        json.dump(groups.existingGroupData, f, indent=4)
 
 def refresh_from_m3u(cleanrun = False, generate_groups = True, preview = False):
     LogManagement.info(f'Media output Path has been set to {Utils.get_movie_output_path()}.')
@@ -163,22 +166,11 @@ def display_tree():
     # Display the tree view
     tree_view.display_tree()
 
-def show_log(old):
-    content = logviewer.get_content(old, Utils.get_inverted(), Utils.get_lines(), True)
-    logviewer.window(Utils.ADDON_NAME, content, default=Utils.is_default_window())
-
 def run():
     if len(sys.argv) > 1:
         # Integration patterns below:
         # Eg: xbmc.executebuiltin("RunScript(script.logviewer, show_log)")
         method = sys.argv[1]
-
-        if method == "show_log":
-            show_log(False)
-        elif method == "show_old_log":
-            show_log(True)
-        else:
-            raise NotImplementedError("Method '{}' does not exist".format(method))
     else:
         headings, handlers = get_opts()
         index = xbmcgui.Dialog().select(Utils.ADDON_NAME, headings)

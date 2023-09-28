@@ -12,6 +12,50 @@ class Groups:
     num_groups = 0
     num_provider_groups = 0
 
+    _group_names = []
+    _movie_group_names = []
+    _series_group_names = []
+    _media_group_names = []
+    _tv_group_names = []
+
+    @property
+    def group_names(self) -> []:
+        self._group_names = [group['name'] for group in self.existingGroupData['groups']]
+
+        return self._group_names
+
+    @property
+    def movie_group_names(self) -> []:
+        re_pattern = re.compile(Utils.get_setting('movie_include'))
+
+        self._movie_group_names = self._filter_entries_with_regex(self.group_names, re_pattern)
+
+        return self._movie_group_names
+
+    @property
+    def series_group_names(self) -> []:
+        re_pattern = re.compile(Utils.get_setting('series_include'))
+
+        self._series_group_names = self._filter_entries_with_regex(self.group_names, re_pattern)
+
+        return self._series_group_names
+
+    @property
+    def media_group_names(self) -> []:
+        re_pattern = re.compile(f'{Utils.get_setting("series_include")}|{Utils.get_setting("movie_include")}')
+
+        self._media_group_names = self._filter_entries_with_regex(self.group_names, re_pattern)
+
+        return self._media_group_names
+
+    @property
+    def tv_group_names(self) -> []:
+        re_pattern = re.compile(f'^(?!.*(?:{Utils.get_setting("movie_include")}|{Utils.get_setting("series_include")})).*$')
+
+        self._tv_group_names = self._filter_entries_with_regex(self.group_names, re_pattern)
+
+        return self._tv_group_names
+
     def __init__(self, playlist_data = None, generate_groups = None):
         LogManagement.info(f'Group settings file path: {Utils.get_group_json_path()}.')
         #import web_pdb; web_pdb.set_trace()
@@ -152,5 +196,8 @@ class Groups:
                     "include": False
                 }
 
-
         return playlistGroupData
+    
+    def _filter_entries_with_regex(self, data, pattern):
+        filtered_list = [entry for entry in data if pattern.search(entry)]
+        return filtered_list

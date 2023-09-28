@@ -75,7 +75,7 @@ def get_playlist_path():
 
 def get_xmltv_path():
     home = xbmcvfs.translatePath('special://home')
-    playlist_path = f"{home}{get_provider_name()}/xmltv.xml"
+    playlist_path = f"{home}{get_provider_name()}xmltv.xml"
 
     return playlist_path
 

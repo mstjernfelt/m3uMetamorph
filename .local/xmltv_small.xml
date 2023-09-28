@@ -1,16 +1,128 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!DOCTYPE tv SYSTEM "xmltv.dtd">
-<tv generator-info-name="My Streaming Server" generator-info-url="iptvworld.xyz">
+<tv generator-info-name="My Streaming Server"
+    generator-info-url="iptvworld.xyz">
 	<channel id="axn.pl">
 		<display-name>AXN HD PL</display-name>
 		<icon src="http://185.211.43.125/PL/pl_axn.jpg"/>
 	</channel>
-	<programme start="20230926103800 +0200" stop="20230926110000 +0200" channel="tlc.br">
-		<title>Muquiranas</title>
-		<desc>Jeni Cox usa equipamentos de fitness em lojas para não ter que pagar uma academia. A corretora de imóveis Lisa DiMercurio gasta só três dólares para apresentar e vender suas casas.</desc>
+	<channel id="discovery.pl">
+		<display-name>Canal+ Discovery HD PL</display-name>
+	</channel>
+	<channel id="filmboxpremium.pl">
+		<display-name>FilmBox Premium FHD PL</display-name>
+		<icon src="http://185.211.43.125/PL/pl_filmbox_hd.jpg"/>
+	</channel>
+	<channel id="svt2.se">
+		<display-name>SVT2 HD SE</display-name>
+		<icon src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/SVT2_logo_2012.svg/200px-SVT2_logo_2012.svg.png"/>
+	</channel>
+	<channel id="kanal5.se">
+		<display-name>Kanal 5 HD SE</display-name>
+		<icon src="https://new.static.tv.nu/47578025"/>
+	</channel>
+	<channel id="tv10.se">
+		<display-name>TV10 HD SE</display-name>
+		<icon src="https://static.epg.best/se/TV10.se.png"/>
+	</channel>
+	<channel id="svt1.se">
+		<display-name>SVT1 HD (B) SE</display-name>
+		<icon src="https://static.epg.best/se/SVT1.se.png"/>
+	</channel>
+		<display-name>Filmbox Premium RO</display-name>
+		<icon src="http://logo.protv.cc/picons/logos/filmboxpremium.png"/>
+	</channel>
+	<channel id="filmboxplus.ro">
+		<display-name>FilmBox Plus RO</display-name>
+	</channel>
+	<programme start="20230926154000 +0200"
+	           stop="20230926154500 +0200"
+	           channel="svt1.se">
+		<title>Norge från luften</title>
+		<desc>En hisnande och storslagen tur med bilder från Norges mångskiftande landskap och naturtyper - sett från luften. I detta avsnitt: Østensjøvannet i Oslo, Sauherad i Telemark, Loen i Sogn og Fjordane mm.</desc>
 	</programme>
-	<programme start="20230926110000 +0200" stop="20230926115000 +0200" channel="tlc.br">
-		<title>Irmãs ao Extremo</title>
-		<desc>Faíscas voam entre a mãe de Ashley e Vee; John faz algo que Christina não queria; Derek achou que teria mais atenção da Randi depois do pedido; Anna e Lucy tentam ser contratadas juntas.</desc>
+	<programme start="20230926154500 +0200"
+	           stop="20230926164500 +0200"
+	           channel="svt1.se">
+		<title>Så ska det låta!</title>
+		<desc>Tävlande: Hanna Hedlund, Roger Pontare, Monica Forsberg och Lasse Berghagen.</desc>
+	</programme>
+	<programme start="20230924162000 +0200"
+	           stop="20230924165000 +0200"
+	           channel="svt2.se">
+		<title>30 minuter</title>
+		<desc>Intervjuprogram där Anders Holmberg söker svar och går på djupet med en aktuell person.</desc>
+	</programme>
+	<programme start="20230924165000 +0200"
+	           stop="20230924170000 +0200"
+	           channel="svt2.se">
+		<title>Det bästa från SVT-arkivet</title>
+		<desc>Återupplev Melodifestivalens glittrande historia och ta del av den här musikaliska resan genom årtionden av slagdängor, minnesvärda ögonblick och kulturell påverkan.</desc>
+	</programme>
+	<programme start="20230926130000 +0200"
+	           stop="20230926131500 +0200"
+	           channel="svt24.se">
+		<title>Andys förhistoriska äventyr</title>
+		<desc>Håll i hatten - Andy ska ut på nya äventyr! Den här omgången till olika förhistoriska åldrar och arter.</desc>
+	</programme>
+	<programme start="20230926131500 +0200"
+	           stop="20230926133000 +0200"
+	           channel="svt24.se">
+		<title>Andys akvatiska äventyr</title>
+		<desc>Andy och Teja är tillbaka för att ge er nya episka äventyr, den här gången med kopplingar till vatten! Häng med och utforska över hela världen för att hitta både kända och okända vattenlevande djur!</desc>
+	</programme>
+	<programme start="20230926133000 +0200"
+	           stop="20230926133500 +0200"
+	           channel="svt24.se">
+		<title>Hjälp! (Meänkieli)</title>
+		<desc>Meja ska prova på att köra gokart för första gången, med hjälp av superhjälparen. Kommer hon att lyckas styra gokarten själv?</desc>
+	</programme>
+	<programme start="20230926133500 +0200"
+	           stop="20230926134000 +0200"
+	           channel="svt24.se">
+		<title>Hjälp! (Meänkieli)</title>
+		<desc>Alvar har aldrig gått på promenad med en ren. Men idag händer det.</desc>
+	</programme>
+	<programme start="20230926134000 +0200"
+	           stop="20230926135000 +0200"
+	           channel="svt24.se">
+		<title>Hjälp! (Meänkieli)</title>
+		<desc>Meja vill baka cupcakes för första gången så hon får hjälp av superhjälparen. Men klarar de av att få allt pynt att rymmas på cupcakesen?</desc>
+	</programme>
+	<programme start="20230926135000 +0200"
+	           stop="20230926141500 +0200"
+	           channel="svt24.se">
+		<title>Ranchen</title>
+		<desc>Lena, Anais, Angelo och Hugo delar alla samma intresse - hästar. På Lenas farfars gamla ranch sköter de sina hästar och hjälper även andra skadade djur.</desc>
+	</programme>
+	<programme start="20230924163500 +0200"
+	           stop="20230924170500 +0200"
+	           channel="tv10.se">
+		<title>The Guild Garage</title>
+		<desc>David och Janice utforskar en Sizaire-Berwick från 1913 som tillhör Davids vän i sydvästra Frankrike. Senare besöker de en annan excentrisk fransk samlare som är besatt av Citroën-bussar från 30- och 40-talen.</desc>
+	</programme>
+	<programme start="20230924170500 +0200"
+	           stop="20230924173500 +0200"
+	           channel="tv10.se">
+		<title>Bilbaronen i Las Vegas</title>
+		<desc>Ägarna till en Turbinator besöker butiken och vill ha ett målningsjobb för deras fordon som håller landets hastighetsrekord.</desc>
+	</programme>
+	<programme start="20230924173500 +0200"
+	           stop="20230924180000 +0200"
+	           channel="tv10.se">
+		<title>Bilbaronen i Las Vegas</title>
+		<desc>Ryan och Kevin åker till Bonneville Salt Flats för att se om Turbinatorn kan komma över 800 km i timmen.</desc>
+	</programme>
+	<programme start="20230924180000 +0200"
+	           stop="20230924185000 +0200"
+	           channel="tv10.se">
+		<title>Bilbaronen i Las Vegas</title>
+		<desc>Brann Dailor, trummare i det Grammy-vinnande heavy metal-bandet Mastodon, kommer in med sin Cadillac Coupe DeVille från 1970.</desc>
+	</programme>
+	<programme start="20230924185000 +0200"
+	           stop="20230924192000 +0200"
+	           channel="tv10.se">
+		<title>Car Hunters</title>
+		<desc>Jim Bussell och hans son Chance har ett behov av fart. De letar efter en bil som de kan binda sig med, och spanar in en sällsynt Barracuda från 1972 och en lågkörd Camaro från 1972 som går lika bra som den ser ut.</desc>
 	</programme>
 </tv>

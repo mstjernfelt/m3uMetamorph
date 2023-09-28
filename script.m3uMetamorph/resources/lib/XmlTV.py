@@ -3,6 +3,7 @@ import os
 import json
 import xbmcgui
 import xbmcvfs
+import difflib
 import xml.etree.ElementTree as ET
 
 from enum import Enum
@@ -14,7 +15,8 @@ from resources.lib import Utils
 
 class XmlTv_Parser:
     cleanrun: bool = False
-    xml_tv_data = None
+    new_xml_tv_data = None
+    current_xml_tv_data = None
 
     def __init__(self, generate_groups=None, preview=False, cleanrun=False):
         self.cleanrun = cleanrun
@@ -22,60 +24,44 @@ class XmlTv_Parser:
         m3u_file_handler = m3uFileHandler()
         m3u_file_handler.get_xmltv_file(_cleanrun=self.cleanrun)
 
-        self.xml_tv_data = m3u_file_handler.open_file_with_progress(Utils.get_xmltv_path())
+        LogManagement.info(f'self.xml_tv_data before: {self.xml_tv_data}')
 
-        LogManagement.info(f'self.xml_tv_data before: {len(self.xml_tv_data)}')
+        if not self.cleanrun and os.path.exists(Utils.get_xmltv_path()):
+            self.xml_tv_data = self._compare_identical_xml_files(m3u_file_handler.current_xmltv_path, Utils.get_xmltv_path())
 
-        self._check_for_differences(m3u_file_handler.current_xmltv_path)
+        LogManagement.info(f'self.xml_tv_data after: {self.xml_tv_data}')
 
-        LogManagement.info(f'self.xml_tv_data after: {len(self.xml_tv_data)}')
+    def _compare_identical_xml_files(self, current_xml_tv_path, new_xml_tv_path):
+        currentM3uDict = self._get_extinf_urls(current_xml_tv_path)
+        newM3uDict = self._get_extinf_urls(new_xml_tv_path)
 
-    def _check_for_differences(self, xml_tv_path):
-        if self.cleanrun:
-            return
-        
-        self.xml_tv_data = self.compare_xml_files(current_xml_tv_path=xml_tv_path, new_xml_tv_path=Utils.get_xmltv_path())
+        keys1 = set(currentM3uDict.keys())
+        keys2 = set(newM3uDict.keys())
+        diff_keys1 = keys1 - keys2
+        diff_keys2 = keys2 - keys1
 
-    def compare_xml_files(current_xml_tv_path, new_xml_tv_path):
-        try:
-            # Parse both XML files
-            tree1 = ET.parse(current_xml_tv_path)
-            tree2 = ET.parse(new_xml_tv_path)
+        diff_items1 = {k: currentM3uDict[k] for k in diff_keys1}
+        diff_items2 = {k: newM3uDict[k] for k in diff_keys2}
 
-            # Get the root elements of both trees
-            root1 = tree1.getroot()
-            root2 = tree2.getroot()
+        result = {**diff_items1, **diff_items2}
 
-            # Compare the XML trees
-            differences = []
+        return(result)
 
-            # Define a recursive function to compare elements and their attributes
-            def compare_elements(elem1, elem2):
-                if elem1.tag != elem2.tag:
-                    differences.append(f"Element name mismatch: {elem1.tag} != {elem2.tag}")
+    def _get_extinf_urls(self, file_name):
+        if not xbmcvfs.exists(file_name):
+            return {}
 
-                if elem1.text != elem2.text:
-                    differences.append(f"Text content mismatch: {elem1.text} != {elem2.text}")
+        extinf_url_extinf_pattern = re.compile(r'#EXTINF:-1\s+(.*?)\n(http[s]?://\S+)')
 
-                if elem1.attrib != elem2.attrib:
-                    differences.append(f"Attribute mismatch in element '{elem1.tag}': {elem1.attrib} != {elem2.attrib}")
+        contents = self._open_playlist_with_progress(file_name)
 
-                for child1, child2 in zip(elem1, elem2):
-                    compare_elements(child1, child2)
+        matches = extinf_url_extinf_pattern.findall(contents)
+        extinf_url_dict = {}
+        count = 0
 
-            compare_elements(root1, root2)
+        for match in matches:
+            extinf = match[0]
+            extinf_url = match[1]
+            extinf_url_dict[extinf_url] = extinf
 
-            return differences
-        except Exception as e:
-            print("An error occurred:", str(e))
-            return None
-
-    # Example usage:
-    # file1_path = "path/to/your/file1.xml"
-    # file2_path = "path/to/your/file2.xml"
-    # differences = compare_xml_files(file1_path, file2_path)
-    # if differences:
-    #     for diff in differences:
-    #         print(diff)
-    # else:
-    #     print("No differences found.")
+        return(extinf_url_dict)
