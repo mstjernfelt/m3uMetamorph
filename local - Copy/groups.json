@@ -1,0 +1,36 @@
+{
+    "groups": [
+        {
+            "name": "Sweden",
+            "include": true
+        },
+        {
+            "name": "Discovery+ Sport SE",
+            "include": false
+        },
+        {
+            "name": "Viaplay Sport SE",
+            "include": false
+        },
+        {
+            "name": "TV4 Play SE",
+            "include": false
+        },
+        {
+            "name": "Series: English [Multi-Sub]",
+            "include": true
+        },
+        {
+            "name": "Series: NORDIC",
+            "include": false
+        },
+        {
+            "name": "VOD: Premiere Cinemas [Multi-Sub]",
+            "include": true
+        },
+        {
+            "name": "VOD: Christmas Movies [Multi-Sub]",
+            "include": false
+        }
+    ]
+}

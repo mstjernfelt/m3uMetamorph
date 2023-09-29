@@ -1,0 +1,26 @@
+<tv generator-info-name="My Streaming Server" generator-info-url="iptvworld.xyz">
+	<channel id="svt2.se">
+		<display-name>SVT2 HD SE</display-name>
+		<icon src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/SVT2_logo_2012.svg/200px-SVT2_logo_2012.svg.png" />
+	</channel>
+	<channel id="svt1.se">
+		<display-name>SVT1 HD (B) SE</display-name>
+		<icon src="https://static.epg.best/se/SVT1.se.png" />
+	</channel>	
+	<programme start="20230926154000 +0200" stop="20230926154500 +0200" channel="svt1.se">
+		<title>Norge från luften</title>
+		<desc>En hisnande och storslagen tur med bilder från Norges mångskiftande landskap och naturtyper - sett från luften. I detta avsnitt: Østensjøvannet i Oslo, Sauherad i Telemark, Loen i Sogn og Fjordane mm.</desc>
+	</programme>
+	<programme start="20230926154500 +0200" stop="20230926164500 +0200" channel="svt1.se">
+		<title>Så ska det låta!</title>
+		<desc>Tävlande: Hanna Hedlund, Roger Pontare, Monica Forsberg och Lasse Berghagen.</desc>
+	</programme>	
+	<programme start="20230924162000 +0200" stop="20230924165000 +0200" channel="svt2.se">
+		<title>30 minuter</title>
+		<desc>Intervjuprogram där Anders Holmberg söker svar och går på djupet med en aktuell person.</desc>
+	</programme>
+	<programme start="20230924165000 +0200" stop="20230924170000 +0200" channel="svt2.se">
+		<title>Det bästa från SVT-arkivet</title>
+		<desc>Återupplev Melodifestivalens glittrande historia och ta del av den här musikaliska resan genom årtionden av slagdängor, minnesvärda ögonblick och kulturell påverkan.</desc>
+	</programme>
+</tv>

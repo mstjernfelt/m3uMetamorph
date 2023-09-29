@@ -156,7 +156,7 @@ class M3UParser:
 
     _cleanrun = None
     _play_list_data = None
-    _m3u_entries_other = [ExtM3U_Entry]
+    _tv_m3u_entries = [ExtM3U_Entry]
     _m3u_entries = [ExtM3U_Entry]
 
     ## cleanrun
@@ -178,7 +178,7 @@ class M3UParser:
         self._play_list_data = value
 
     m3u_entries: List[ExtM3U_Entry] = []
-    m3u_entries_other: List[ExtM3U_Entry] = []
+    tv_m3u_entries: List[ExtM3U_Entry] = []
     num_new_series = 0
     num_new_movies = 0
     num_errors = 0
@@ -209,7 +209,7 @@ class M3UParser:
             m3u_entry.include = self.groups.check_group_inclusion(m3u_entry.group_title)
 
             if m3u_entry.type == TypeEnum.Other:
-                self.m3u_entries_other.append(m3u_entry)
+                self.tv_m3u_entries.append(m3u_entry)
             else:
                 self.m3u_entries.append(m3u_entry)
 
@@ -226,17 +226,18 @@ class M3UParser:
         with open(file_name, 'w') as json_file:
             json.dump(m3u_dict, json_file, indent=4)
 
-    def generate_extm3u_other_file(self):
+    def generate_tv_m3u_file(self):
         try:
-            filename = Utils.get_tv_output_path()
-            LogManagement.info(f'Writing tv m3u: {filename}')
+            filename = Utils.get_tv_m3u_path()
+
+            LogManagement.info(f'TV m3u path: {filename}')
 
             if os.path.exists(filename):
                 os.remove(filename)
 
             with open(filename, 'w', encoding='utf-8') as f:
-                for m3u_entry in self.m3u_entries_other:
-                    if not m3u_entry.include:
+                for m3u_entry in self.tv_m3u_entries:
+                    if not m3u_entry.include or m3u_entry.id == "":
                         self.num_other_skipped += 1
                         continue
 
@@ -266,12 +267,14 @@ class M3UParser:
                 if m3u_entry.type == TypeEnum.Other:
                     self.num_other_skipped += 1
 
+                continue
+            
             if m3u_entry.type == TypeEnum.Series:
                 output_path = Utils.get_series_output_path()
-                output_path = os.path.join(output_path, f'{m3u_entry.title}/{m3u_entry.subfolder}')
+                output_path = os.path.join(output_path, f'{m3u_entry.group_title}/{m3u_entry.title}/{m3u_entry.subfolder}')
             elif m3u_entry.type == TypeEnum.Movie:
                 output_path = Utils.get_movie_output_path()
-                output_path = os.path.join(output_path, f'{m3u_entry.subfolder}')
+                output_path = os.path.join(output_path, f'{m3u_entry.group_title}/{m3u_entry.subfolder}')
 
             output_strm = os.path.join(output_path, m3u_entry.filename)
 

@@ -4,6 +4,7 @@ import xbmc
 import xbmcvfs
 
 from resources.lib import LogManagement
+from resources.lib.M3uManagement import TypeEnum
 from resources.lib import Utils
 
 class Groups:
@@ -17,6 +18,70 @@ class Groups:
     _series_group_names = []
     _media_group_names = []
     _tv_group_names = []
+
+    class Group():
+        _name: str = ""
+        _include: bool = False
+        _type: TypeEnum
+
+        def name(self):
+            return self._name
+        
+        @property.setter
+        def name(self, value: str):
+            self._name = value
+
+        def include(self):
+            return self._name
+        
+        @property.setter
+        def include(self, value: bool):
+            self._include = value
+            
+        def type(self):
+            return self._type
+        
+        @property.setter
+        def type(self, value: TypeEnum):
+            self._type = value
+
+    @property
+    def media_group_data(self):
+        # Create a dictionary to store filtered entries
+        filtered_entries = []
+
+        # Define the regex pattern
+        movie_include_pattern = re.escape(Utils.get_setting("movie_include"))
+        series_include_pattern = re.escape(Utils.get_setting("series_include"))
+        re_pattern = re.compile(f'{movie_include_pattern}|{series_include_pattern}')
+
+        # Iterate through the entries and filter based on the pattern and 'include' key
+        for group in self.existingGroupData['groups']:
+            if re.match(re_pattern, group['name']):
+                filtered_entries.append(group)  # Use 'name' as the key
+
+        filtered_entries = { 'groups': filtered_entries }
+
+        return filtered_entries     
+    
+    @property
+    def tv_group_data(self):
+        # Create a dictionary to store filtered entries
+        filtered_entries = []
+
+        # Define the regex pattern
+        movie_include_pattern = re.escape(Utils.get_setting("movie_include"))
+        series_include_pattern = re.escape(Utils.get_setting("series_include"))
+        re_pattern = re.compile(f'^(?!.*(?:{movie_include_pattern}|{series_include_pattern})).*$')
+
+        # Iterate through the entries and filter based on the pattern and 'include' key
+        for group in self.existingGroupData['groups']:
+            if re.match(re_pattern, group['name']):
+                filtered_entries.append(group)  # Use 'name' as the key
+
+        tv_group_data = { 'groups': filtered_entries }
+
+        return tv_group_data
 
     @property
     def group_names(self) -> []:
@@ -55,6 +120,23 @@ class Groups:
         self._tv_group_names = self._filter_entries_with_regex(self.group_names, re_pattern)
 
         return self._tv_group_names
+
+    @property
+    def included_tv_groups(self) -> {}:
+        # Create a dictionary to store filtered entries
+        filtered_entries = {}
+
+        # Define the regex pattern
+        movie_include_pattern = re.escape(Utils.get_setting("movie_include"))
+        series_include_pattern = re.escape(Utils.get_setting("series_include"))
+        pattern = f'^(?!.*(?:{movie_include_pattern}|{series_include_pattern})).*$'
+
+        # Iterate through the entries and filter based on the pattern and 'include' key
+        for group in self.existingGroupData['groups']:
+            if group['include'] and re.match(pattern, group['name']):
+                filtered_entries[group['name']] = group  # Use 'name' as the key
+
+        return filtered_entries
 
     def __init__(self, playlist_data = None, generate_groups = None):
         LogManagement.info(f'Group settings file path: {Utils.get_group_json_path()}.')
@@ -198,6 +280,6 @@ class Groups:
 
         return playlistGroupData
     
-    def _filter_entries_with_regex(self, data, pattern):
+    def _filter_entries_with_regex(self, data, pattern: re):
         filtered_list = [entry for entry in data if pattern.search(entry)]
         return filtered_list

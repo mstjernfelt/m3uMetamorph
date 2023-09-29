@@ -79,6 +79,12 @@ def get_xmltv_path():
 
     return playlist_path
 
+def get_tv_m3u_path():
+    home = xbmcvfs.translatePath('special://home')
+    tv_m3u_path = f"{home}xmltv.m3u"
+
+    return tv_m3u_path
+
 def get_group_json_path():
     home = xbmcvfs.translatePath('special://home')
     group_json_path = f"{home}{get_provider_name()}/groups.json"
@@ -91,9 +97,9 @@ def get_playlist_url():
     return playlist_url
 
 def get_xmltv_url():
-    playlist_url = get_setting("xmltv_url")
+    xmltv_url = get_setting("xmltv_url")
 
-    return playlist_url
+    return xmltv_url
 
 def get_provider_name():
     provider_name = get_setting("provider_name")

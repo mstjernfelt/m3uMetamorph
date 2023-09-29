@@ -42,7 +42,7 @@ class Monitor(xbmc.Monitor):
     def _start_http_server_runner(self):
         if self._http_server_runner is None:
             logging.debug("Starting http server runner")
-            self._http_server_runner = HTTPServerRunner(self, Utils.get_int_setting("port"))
+            self._http_server_runner = HTTPServerRunner(self, utils.get_int_setting("port"))
             self._http_server_runner.start()
 
     def _stop_http_server_runner(self):
@@ -53,10 +53,10 @@ class Monitor(xbmc.Monitor):
 
     def onSettingsChanged(self):
         if self._running:
-            self._start_error_popup_runner() if Utils.get_boolean_setting(
+            self._start_error_popup_runner() if utils.get_boolean_setting(
                 "error_popup") else self._stop_error_popup_runner()
 
-            self._start_http_server_runner() if Utils.get_boolean_setting(
+            self._start_http_server_runner() if utils.get_boolean_setting(
                 "http_server") else self._stop_http_server_runner()
 
 
@@ -97,11 +97,11 @@ class ErrorPopupRunner(threading.Thread):
         path = logviewer.log_location(False)
         if path is None:
             logging.error("Unable to find log path")
-            xbmcgui.Dialog().ok(Utils.translate(30016), Utils.translate(30017))
+            xbmcgui.Dialog().ok(utils.translate(30016), utils.translate(30017))
             return
 
         reader = LogReader(path)
-        exceptions = Utils.parse_exceptions_only()
+        exceptions = utils.parse_exceptions_only()
 
         # Ignore initial errors
         reader.tail()
@@ -110,7 +110,7 @@ class ErrorPopupRunner(threading.Thread):
             content = reader.tail()
             parsed_errors = logviewer.parse_errors(content, set_style=True, exceptions_only=exceptions)
             if parsed_errors:
-                logviewer.window(Utils.ADDON_NAME, parsed_errors, default=Utils.is_default_window())
+                logviewer.window(utils.ADDON_NAME, parsed_errors, default=utils.is_default_window())
             self._monitor.waitForAbort(1)
 
     def stop(self):

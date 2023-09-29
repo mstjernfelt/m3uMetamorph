@@ -1,0 +1,42 @@
+[
+    {
+        "name": "Pam & Tommy S01 Pam & Tommy - S01E01",
+        "type": "Series",
+        "group_title": "Series: English [Multi-Sub]",
+        "title": "Pam & Tommy",
+        "subfolder": "Pam & Tommy S01",
+        "filename": "Pam & Tommy - S01E01.strm",
+        "include": false,
+        "url": "http://iptvworld.xyz:2095/series/gXGmBCAG/beKKf8B/190507.mkv"
+    },
+    {
+        "name": "Anderssons \u00e4lskarinna S01 Anderssons \u00c4lskarinna - S01E01",
+        "type": "Series",
+        "group_title": "Series: NORDIC",
+        "title": "Anderssons \u00e4lskarinna",
+        "subfolder": "Anderssons \u00e4lskarinna S01",
+        "filename": "Anderssons \u00c4lskarinna - S01E01.strm",
+        "include": false,
+        "url": "http://iptvworld.xyz:2095/series/gXGmBCAG/beKKf8B/511691.mkv"
+    },
+    {
+        "name": "The Outfit [PRE] [2022]",
+        "type": "Movie",
+        "group_title": "VOD: Premiere Cinemas [Multi-Sub]",
+        "title": "The Outfit",
+        "subfolder": "The Outfit  2022",
+        "filename": "The Outfit  2022.strm",
+        "include": false,
+        "url": "http://iptvworld.xyz:2095/movie/gXGmBCAG/beKKf8B/364865.mkv"
+    },
+    {
+        "name": "The Santa Clause 3: The Escape Clause [2006]",
+        "type": "Movie",
+        "group_title": "VOD: Christmas Movies [Multi-Sub]",
+        "title": "The Santa Clause 3: The Escape Clause",
+        "subfolder": "The Santa Clause 3 The Escape Clause 2006",
+        "filename": "The Santa Clause 3 The Escape Clause 2006.strm",
+        "include": false,
+        "url": "http://iptvworld.xyz:2095/movie/gXGmBCAG/beKKf8B/87207.mkv"
+    }
+]

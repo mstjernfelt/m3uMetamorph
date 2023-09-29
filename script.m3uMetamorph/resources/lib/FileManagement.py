@@ -86,30 +86,13 @@ class m3uFileHandler():
 
         LogManagement.info(f'Loaded playlist successfully.')
 
-    def get_xmltv_file(self, _cleanrun=False) -> str:
+    def get_xmltv_file(self) -> str:
         LogManagement.info(f'Loading XmlTV from {Utils.get_xmltv_url()}.')
 
         LogManagement.info(f'XmlTV save path: {Utils.get_xmltv_path()}.')
 
-        if _cleanrun:
-            if xbmcvfs.exists(Utils.get_xmltv_path()):
-                xbmcvfs.delete(Utils.get_xmltv_path())
-                LogManagement.info(f"cleanrun was set, the file {Utils.get_xmltv_path()} has been deleted.")
-            else:
-                LogManagement.info(f"cleanrun was set, The file {Utils.get_xmltv_path()} does not exist.")
-
-        temp_dir = xbmcvfs.translatePath('special://home/')            
-        temp_file_path = tempfile.mktemp(dir=temp_dir)
-
         if xbmcvfs.exists(Utils.get_xmltv_path()):
-            LogManagement.info(f"XmlTV file exists: {Utils.get_xmltv_path()}")
-            LogManagement.info(f"Created temp file {temp_file_path}")
-
-            self.current_xmltv_path = temp_file_path
-
-            LogManagement.info(f"Copy current XmlTV file ({Utils.get_xmltv_path()}) to temp ({self.current_xmltv_path})")
-
-            xbmcvfs.copy(Utils.get_xmltv_path(), self.current_xmltv_path)
+            xbmcvfs.delete(Utils.get_xmltv_path())
 
         if Utils.get_xmltv_url().startswith('http') or Utils.get_xmltv_url().startswith('https'):
             if not xbmcvfs.exists(Utils.get_movie_output_path()):
@@ -118,25 +101,15 @@ class m3uFileHandler():
             self.dialog.create('Task Progress', f"Downloading XmlTV file...")
 
             try:           
-                urllib.request.urlretrieve(Utils.get_xmltv_url(), temp_file_path, reporthook = self.progress_callback)
-
-                playlist_path = Utils.get_xmltv_path()
-                result = xbmcvfs.copy(temp_file_path, playlist_path)
-
-                if not result:
-                    LogManagement.error(f'Error copying XmlTV file to {playlist_path}')    
-            except:
-                xbmcvfs.delete(temp_file_path)
+                urllib.request.urlretrieve(Utils.get_xmltv_url(), Utils.get_xmltv_path(), reporthook = self.progress_callback)
+                LogManagement.info(f'XmlTV file downloaded to {Utils.get_xmltv_path()}')                
+            except Exception as e:
+                LogManagement.error(f'Error downloading xml tv file: {e}')
 
             self.dialog.close()
-
-            LogManagement.info(f'XmlTV file downloaded to {Utils.get_xmltv_path()}')
         else:
             xbmcvfs.copy(Utils.get_xmltv_url(), Utils.get_xmltv_path())
-
             LogManagement.info(f'XmlTV file copied to {Utils.get_xmltv_path()}')
-
-        LogManagement.info(f'Loaded XmlTV file successfully.')
 
     def progress_callback(self, count, block_size, total_size):
         # Calculate the download percentage
