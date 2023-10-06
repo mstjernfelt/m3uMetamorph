@@ -19,6 +19,10 @@
         <setting label="Misc" type="lsep"/>
         <setting id="update_library" type="bool" label="Update library" default=""/>
         <setting id="debug_mode" type="bool" label="Debug Mode" default="False" help="Debug Mode, enables Web-PDB imports"/>
+
+        <setting label="The Movie Database" type="lsep"/>
+        <setting id="tmdb_api_token" type="text" label="API Token" option="hidden" default="" help="Your The Movie Database API Read Access Token."/>
+        <setting id="tmdb_num_pages_to_include" type="number" label="Number of pages" default="10" help="How many pages to include in the API calls."/>
     </category>
     <category label="Filters">
         <setting label="M3u Filters" type="lsep"/>

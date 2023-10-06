@@ -2,11 +2,13 @@
 
 import re
 import sys
+from typing import List
 
 import xbmc
 import json
 import xbmcgui
 
+from resources.lib.treeview import TreeView, TreeNode
 from resources.lib import Utils
 from resources.lib import LogManagement
 from resources.lib.M3uManagement import M3UParser
@@ -25,20 +27,30 @@ def get_opts():
     handlers = []
 
     # Refresh from playlist (Incremental)
-    headings.append(Utils.translate(30001))
+    headings.append('Incremental run')
     handlers.append(lambda: refresh_from_m3u())
 
+    # Refresh from playlist (Incremental)
+    headings.append('Incremental run (Preview)')
+    handlers.append(lambda: refresh_from_m3u(preview=True))
+
     # Refresh from playlist (Clean run)
-    headings.append(Utils.translate(30002))
+    headings.append('Clean run')
     handlers.append(lambda: refresh_from_m3u(cleanrun=True))
 
     # Refresh from playlist (Clean run)
+    headings.append('Clean run (Preview, Generate Groups)')
+    handlers.append(lambda: refresh_from_m3u(cleanrun=True, preview=True))
+
+    # Refresh from playlist (Clean run)
     headings.append("Edit groups")
-    handlers.append(lambda: edit_groups())
+    groups = Groups()
+    handlers.append(lambda: groups.edit_media_groups())
 
     # Refresh from playlist (Clean run)
     headings.append("Edit TV groups")
-    handlers.append(lambda: edit_tv_groups())
+    groups = Groups()
+    handlers.append(lambda: groups.edit_tv_groups())
 
     # Refresh from playlist (Clean run)
     headings.append("Update Library")
@@ -49,8 +61,8 @@ def get_opts():
     handlers.append(Utils.open_settings)
 
     # Open Settings
-    headings.append("Test XML TV Parser")
-    handlers.append(lambda: xml_tv_parser_tester())
+    headings.append("select_group_outputpath")
+    handlers.append(lambda: select_group_outputpath())
 
     # Test - For debug only
     # headings.append("Test Exception")
@@ -64,59 +76,9 @@ def xml_tv_parser_tester():
 def update_library():
     xbmc.executebuiltin(function="UpdateLibrary(video)")
 
-def edit_groups():
-    groups = Groups()
-    dialog = xbmcgui.Dialog()
-
-    preselected_indices = [index for index, group in enumerate(groups.media_group_data['groups']) if group['include']]
-
-    selected_indices = dialog.multiselect("Select Media Groups", groups.media_group_names, preselect=preselected_indices)
-
-    if selected_indices is None:
-        return
-
-    for index, group in enumerate(groups.media_group_data['groups']):
-        if index in selected_indices:
-            group['include'] = True
-        else:
-            group['include'] = False
-
-    # groups.existingGroupData = {**groups.media_group_data, **groups.tv_group_data}
-
-    # with open(Utils.get_group_json_path(), 'w+') as f:
-    #     json.dump(groups.existingGroupData, f, indent=4)
-
-def edit_tv_groups():
-    groups = Groups()
-    dialog = xbmcgui.Dialog()
-
-    LogManagement.info(f'groups.tv_group_data: {groups.tv_group_data["groups"]}')
-
-    preselected_indices = [index for index, group in enumerate(groups.tv_group_data['groups']) if group['include']]
-
-    selected_indices = dialog.multiselect("Select TV Groups", groups.tv_group_names, preselect=preselected_indices)
-
-    if selected_indices is None:
-        return
-
-    for index, group in enumerate(groups.existingGroupData['groups']):
-        if index in selected_indices:
-            group['include'] = True
-        else:
-            group['include'] = False
-
-    groups.existingGroupData = {**groups.media_group_data, **groups.tv_group_data}
-
-    # with open(Utils.get_group_json_path(), 'w+') as f:
-    #     json.dump(groups.existingGroupData, f, indent=4)
-
-    for entry in groups.existingGroupData["groups"]:
-        LogManagement.info(entry)
-
 def refresh_from_m3u(cleanrun = False, generate_groups = True, preview = False):
     LogManagement.info(f'Media output Path has been set to {Utils.get_movie_output_path()}.')
     LogManagement.info(f'Playlist URL has been set to {Utils.get_playlist_url}.')
-    LogManagement.info(f'IPTV Provider has been set to {Utils.get_provider_name()}.')
     LogManagement.info(f'Generate Groups has been set to {generate_groups}.')
     LogManagement.info(f'Preview mode has been set to {preview}.')
 
@@ -126,7 +88,7 @@ def refresh_from_m3u(cleanrun = False, generate_groups = True, preview = False):
     m3uParse.create_strm()
     m3uParse.generate_tv_m3u_file()
 
-    xml_tv_parser = XmlTv_Parser(m3uParse.tv_m3u_entries)
+    #xml_tv_parser = XmlTv_Parser(m3uParse.tv_m3u_entries)
 
     m3uParse.dumpjson(m3uParse.m3u_entries, "C:\BrightCom\GitHub\mstjernfelt\m3uMetamorph\local\m3u_entries.json")
     m3uParse.dumpjson(m3uParse.tv_m3u_entries, "C:\BrightCom\GitHub\mstjernfelt\m3uMetamorph\local\\tv_m3u_entries.json")
@@ -154,12 +116,53 @@ def refresh_from_m3u(cleanrun = False, generate_groups = True, preview = False):
     dialog = xbmcgui.Dialog()
     dialog.textviewer("Parsing result", message_text)
 
-    update_library = Utils.get_setting("update_library")
+    # update_library = Utils.get_setting("update_library")
 
-    if update_library:
-        xbmc.executebuiltin(function="UpdateLibrary(video)", wait=False)
+    # if update_library:
+    #     xbmc.executebuiltin(function="UpdateLibrary(video)", wait=False)
 
-from resources.lib.treeview import TreeView, TreeNode
+import xbmcgui
+
+def select_group_outputpath():
+    # Load the JSON data
+    with open('C:\BrightCom\GitHub\mstjernfelt\m3uMetamorph\local\groups_path.json', 'r') as data_file:
+        group_data = json.load(data_file)
+
+    # Create a list of group names
+    group_names = [group['name'] for group in group_data['groups']]
+
+    # Show a dialog to select a group
+    selected_group_index = xbmcgui.Dialog().select('Select a group', group_names)
+
+    if selected_group_index >= 0:
+        # Get the selected group and its current output path
+        selected_group = group_data['groups'][selected_group_index]
+
+        # Create a list of setting items for the settings dialog
+        setting_items = [
+            ('Group Name', selected_group['name']),
+            ('Current Output Path', selected_group['output path'])
+        ]
+
+        # Create a settings dialog
+        dialog = xbmcgui.Dialog()
+        #dialog.setHeading('Group Settings')
+        selected_setting_index = dialog.settings(setting_items)
+
+        # Handle the user's selection
+        if selected_setting_index >= 0:
+            # Update the selected group's output path with the new value
+            new_output_path = setting_items[1][1]  # Index 1 corresponds to the output path
+            selected_group['output path'] = new_output_path
+
+            # Save the updated JSON data
+            with open('C:\BrightCom\GitHub\mstjernfelt\m3uMetamorph\local\groups_path.json', 'w') as data_file:
+                json.dump(group_data, data_file, indent=4)
+
+            xbmcgui.Dialog().ok('Settings Updated', 'Output path updated successfully.')
+        else:
+            xbmcgui.Dialog().ok('Cancelled', 'You cancelled the settings dialog')
+
 def display_tree():
     # Create a sample hierarchical data structure
     root_node = TreeNode("Root", [

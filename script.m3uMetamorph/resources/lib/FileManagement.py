@@ -139,6 +139,7 @@ class m3uFileHandler():
 
                 while True:
                     chunk = file.read(chunk_size)
+
                     if not chunk:
                         break
 
@@ -147,6 +148,7 @@ class m3uFileHandler():
 
                     # Update progress
                     progress = int((total_read / total_bytes) * 100)
+
                     dialog.update(progress)
 
             return contents

@@ -1,10 +1,10 @@
 import json
 import re
-import xbmc
+from typing import List
 import xbmcvfs
+import xbmcgui
 
 from resources.lib import LogManagement
-from resources.lib.M3uManagement import TypeEnum
 from resources.lib import Utils
 
 class Groups:
@@ -22,27 +22,30 @@ class Groups:
     class Group():
         _name: str = ""
         _include: bool = False
-        _type: TypeEnum
+        _type: str = ""
 
+        @property
         def name(self):
             return self._name
         
-        @property.setter
+        @name.setter
         def name(self, value: str):
             self._name = value
 
+        @property
         def include(self):
             return self._name
         
-        @property.setter
+        @include.setter
         def include(self, value: bool):
             self._include = value
             
+        @property            
         def type(self):
             return self._type
         
-        @property.setter
-        def type(self, value: TypeEnum):
+        @type.setter
+        def type(self, value: str):
             self._type = value
 
     @property
@@ -144,9 +147,9 @@ class Groups:
 
         if generate_groups:
             #Load groups from playlist
-            LogManagement.info(f'Found {len(playlist_data)} entries to get groups from.')
-
             playlistGroupData = self.get_groups_from_playlist(playlist_data)
+
+            LogManagement.info(f'playlistGroupData: {len(playlistGroupData)}')
 
             # Load existing JSON data from file
             self.load()
@@ -218,37 +221,31 @@ class Groups:
         self.existingGroupData = {'groups': existing_groups}
 
     def save(self) -> int:
+        # Initialize old data as an empty dictionary
+        old_data = {}
+
+        # Check if the JSON file exists
         if xbmcvfs.exists(Utils.get_group_json_path()):
             try:
+                # Attempt to load existing JSON data
                 with xbmcvfs.File(Utils.get_group_json_path(), 'r') as f:
-                     old_data = json.load(f)
+                    old_data = json.load(f)
             except json.decoder.JSONDecodeError as e:
-                old_data = {}
-        else:
-            old_data = {}
+                pass  # Handle JSON decoding error, but continue with empty old_data
 
-        newGroupData = {}
+        # Initialize a change count to track the number of new groups added
+        new_groups = self.existingGroupData.get("groups", [])
+        old_groups = old_data.get("groups", [])
+        change_count = len(new_groups) - len(old_groups)
 
         # Update the original dictionary with the new data
-        if len(newGroupData) > 0:
-            self.existingGroupData = newGroupData
+        old_data["groups"] = new_groups
 
         # Save the updated JSON data to file
         with xbmcvfs.File(Utils.get_group_json_path(), 'w+') as f:
-             json.dump(self.existingGroupData, f, indent=4)
+            json.dump(old_data, f, indent=4)
 
-        with xbmcvfs.File(Utils.get_group_json_path(), 'r') as f:
-            old_data = json.load(f)
-
-        oldDataCount = 0
-        newDataCount = 0
-        if 'groups' in old_data:
-            oldDataCount = len(old_data["groups"])
-        
-        if 'groups' in self.existingGroupData:
-            newDataCount = len(self.existingGroupData['groups'])
-
-        return(newDataCount - oldDataCount)
+        return change_count
 
     def check_group_inclusion(self, groupTitle) -> bool:
         for group in self.existingGroupData.values():
@@ -283,3 +280,39 @@ class Groups:
     def _filter_entries_with_regex(self, data, pattern: re):
         filtered_list = [entry for entry in data if pattern.search(entry)]
         return filtered_list
+
+    def edit_media_groups(self):
+        self.edit_groups(self.media_group_data)
+
+    def edit_tv_groups(self):
+        self.edit_groups(self.tv_group_data)
+
+    def edit_groups(self, group_data: List[Group]):
+        groups = Groups()
+        dialog = xbmcgui.Dialog()
+
+        preselected_indices = [index for index, group in enumerate(group_data['groups']) if group['include']]
+
+        media_groups_name = [str(group['name']) for group in group_data['groups']]
+
+        LogManagement.info(f'media_groups_name: {media_groups_name}')
+
+        selected_indices = dialog.multiselect("Select Media Groups", media_groups_name, preselect=preselected_indices)
+
+        if selected_indices is None:
+            return
+
+        for index, group in enumerate(group_data['groups']):
+            if index in selected_indices:
+                group['include'] = True
+            else:
+                group['include'] = False
+
+        for media_group in group_data['groups']:
+            for existing_group in groups.existingGroupData['groups']:
+                if media_group['name'] == existing_group['name']:
+                    existing_group['include'] = media_group['include']
+                    break  # Break out of the inner loop once a match is found
+
+        with open(Utils.get_group_json_path(), 'w+') as f:
+            json.dump(groups.existingGroupData, f, indent=4)    

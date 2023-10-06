@@ -44,7 +44,7 @@ def get_movie_output_path():
     output_path = output_path.rstrip('/')
     output_path = output_path.rstrip('\\')
 
-    output_path = f"{output_path}/{get_provider_name()}/"
+    output_path = f"{output_path}"
 
     return output_path
 
@@ -53,7 +53,7 @@ def get_series_output_path():
     output_path = output_path.rstrip('/')
     output_path = output_path.rstrip('\\')
 
-    output_path = f"{output_path}/{get_provider_name()}/"
+    output_path = f"{output_path}"
 
     return output_path
 
@@ -63,19 +63,18 @@ def get_tv_output_path():
     output_path = output_path.rstrip('/')
     output_path = output_path.rstrip('\\')
 
-    output_path = f"{output_path}/{get_provider_name()}/"
-    output_path = os.path.join(output_path, tv_output_filename)
+    output_path = f'{output_path}/{tv_output_filename}'
     return output_path
 
 def get_playlist_path():
     home = xbmcvfs.translatePath('special://home')
-    playlist_path = f"{home}{get_provider_name()}/playlist.m3u"
+    playlist_path = f"{home}/playlist.m3u"
 
     return playlist_path
 
 def get_xmltv_path():
     home = xbmcvfs.translatePath('special://home')
-    playlist_path = f"{home}{get_provider_name()}xmltv.xml"
+    playlist_path = f"{home}xmltv.xml"
 
     return playlist_path
 
@@ -87,7 +86,7 @@ def get_tv_m3u_path():
 
 def get_group_json_path():
     home = xbmcvfs.translatePath('special://home')
-    group_json_path = f"{home}{get_provider_name()}/groups.json"
+    group_json_path = f"{home}/groups.json"
 
     return group_json_path
 
@@ -101,10 +100,10 @@ def get_xmltv_url():
 
     return xmltv_url
 
-def get_provider_name():
-    provider_name = get_setting("provider_name")
+# def get_provider_name():
+#     provider_name = get_setting("provider_name")
 
-    return provider_name
+#     return provider_name
 
 def get_setting(setting):
     return ADDON.getSetting(setting)
@@ -175,7 +174,7 @@ import os
 
 def create_directory(directory_path):
     try:
-        os.mkdir(directory_path)
+        xbmcvfs.mkdir(directory_path)
         print("Directory created successfully.")
     except FileExistsError:
         print("Directory already exists.")
