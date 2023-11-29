@@ -68,7 +68,7 @@ def get_tv_output_path():
 
 def get_playlist_path():
     home = xbmcvfs.translatePath('special://home')
-    playlist_path = f"{home}/playlist.m3u"
+    playlist_path = f"{home}playlist.m3u"
 
     return playlist_path
 

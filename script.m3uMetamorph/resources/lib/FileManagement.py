@@ -35,21 +35,16 @@ class m3uFileHandler():
 
         # Get the temporary directory path
         temp_dir = xbmcvfs.translatePath('special://home/')            
+        # Generate a unique name for the temporary file        
         temp_file_path = tempfile.mktemp(dir=temp_dir)
+        LogManagement.info(f"Created temp file {temp_file_path}")
 
         if xbmcvfs.exists(Utils.get_playlist_path()):
-            LogManagement.info(f"m3u file exists: {Utils.get_playlist_path()}")
-            # create a temporary file
-
-            # Generate a unique name for the temporary file
-            LogManagement.info(f"Created temp file {temp_file_path}")
-
-            #temp_file = xbmcvfs.File(temp_file_path, 'w')
+            LogManagement.info(f"Playlist file exists: {Utils.get_playlist_path()}")
 
             # get the path of the temporary file
             self.current_playlist_path = temp_file_path
 
-            # use shutil.copy() to copy the contents of the source file to the temporary file
             LogManagement.info(f"Copy current playlist ({Utils.get_playlist_path()}) to temp ({self.current_playlist_path})")
 
             xbmcvfs.copy(Utils.get_playlist_path(), self.current_playlist_path)

@@ -19,10 +19,15 @@
         <setting label="Misc" type="lsep"/>
         <setting id="update_library" type="bool" label="Update library" default=""/>
         <setting id="debug_mode" type="bool" label="Debug Mode" default="False" help="Debug Mode, enables Web-PDB imports"/>
-
-        <setting label="The Movie Database" type="lsep"/>
+    </category>
+    <category label="The Movie Database">
+        <setting id="tmdb_enabled" type="bool" label="Enabled" default="False" help="Enabled TMDB Fetching"/>
         <setting id="tmdb_api_token" type="text" label="API Token" option="hidden" default="" help="Your The Movie Database API Read Access Token."/>
-        <setting id="tmdb_num_pages_to_include" type="number" label="Number of pages" default="10" help="How many pages to include in the API calls."/>
+        <setting id="tmdb_movies_upcoming_num_pages_to_include" type="number" label="Upcoming Movies # pages" default="10" help="How many pages to include in the Movies Upcomging API calls."/>
+        <setting id="tmdb_movies_top_rated_num_pages_to_include" type="number" label="Top Movies # Rated pages" default="20" help="How many pages to include in the Movies Top Rated API calls."/>
+        <setting id="tmdb_movies_popular_num_pages_to_include" type="number" label="Popular Movies # pages" default="20" help="How many pages to include in the API Movies Popular calls."/>
+        <setting id="tmdb_series_top_rated_num_pages_to_include" type="number" label="Top Rated Series # pages" default="20" help="How many pages to include in the API Series Top Rated calls."/>
+        <setting id="tmdb_series_popular_num_pages_to_include" type="number" label="Popular Series # pages" default="20" help="How many pages to include in the API Series Popular calls."/>
     </category>
     <category label="Filters">
         <setting label="M3u Filters" type="lsep"/>

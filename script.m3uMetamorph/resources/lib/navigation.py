@@ -78,8 +78,9 @@ def update_library():
 
 def refresh_from_m3u(cleanrun = False, generate_groups = True, preview = False):
     LogManagement.info(f'Media output Path has been set to {Utils.get_movie_output_path()}.')
-    LogManagement.info(f'Playlist URL has been set to {Utils.get_playlist_url}.')
+    LogManagement.info(f'Playlist URL has been set to {Utils.get_playlist_url()}.')
     LogManagement.info(f'Generate Groups has been set to {generate_groups}.')
+    LogManagement.info(f'Clean run has been set to {cleanrun}.')
     LogManagement.info(f'Preview mode has been set to {preview}.')
 
     m3uParse = M3UParser(generate_groups=generate_groups, preview=preview, cleanrun=cleanrun)

@@ -149,8 +149,6 @@ class Groups:
             #Load groups from playlist
             playlistGroupData = self.get_groups_from_playlist(playlist_data)
 
-            LogManagement.info(f'playlistGroupData: {len(playlistGroupData)}')
-
             # Load existing JSON data from file
             self.load()
             self.set(playlistGroupData)

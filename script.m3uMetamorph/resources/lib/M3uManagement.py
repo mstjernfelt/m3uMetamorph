@@ -180,20 +180,6 @@ class ExtM3U_Entry:
         return ''
 
 class M3UParser:
-    def __init__(self, generate_groups=None, preview=False, cleanrun=False):
-        self.preview = preview
-        
-        self.cleanrun = cleanrun
-
-        m3u_file_handler = m3uFileHandler()
-        m3u_file_handler.get_m3u_file(_cleanrun=self.cleanrun)
-
-        self.play_list_data = self._open_playlist_with_progress(Utils.get_playlist_path())
-
-        self._check_for_differences(m3u_file_handler.current_playlist_path)
-
-        self.groups = Groups(generate_groups = generate_groups, playlist_data=self.play_list_data)
-
     _cleanrun = None
     _play_list_data = None
     _tv_m3u_entries = [ExtM3U_Entry]
@@ -227,18 +213,35 @@ class M3UParser:
     num_other_skipped = 0
     num_series_exists = 0
     num_movies_exists = 0
+    num_other_included = 0
+    num_Series_included = 0
+    num_movies_included = 0
 
     TVGIDCONST = 'tvg-id='
 
+    def __init__(self, generate_groups=None, preview=False, cleanrun=False):
+        self.preview = preview
+        
+        self.cleanrun = cleanrun
+
+        m3u_file_handler = m3uFileHandler()
+        m3u_file_handler.get_m3u_file(_cleanrun=self.cleanrun)
+
+        self.play_list_data = self._open_playlist_with_progress(Utils.get_playlist_path())
+
+        self._check_for_differences(m3u_file_handler.current_playlist_path)
+
+        self.groups = Groups(generate_groups = generate_groups, playlist_data=self.play_list_data)
+
     def parse(self):
+        # Create an instance of the MovieTitleManager
+        if len(self.play_list_data.items()) > 0:
+            tmdb_title_manager = tmdb.TitleManager()
+            tmdb_title_manager.fetch_titles()
+
         dialog = xbmcgui.DialogProgress()
         dialog.create(heading="Parsing entries in playlist...")
         count = 0
-
-        # Create an instance of the MovieTitleManager
-        tmdb_title_manager = tmdb.Title_Manager()
-        tmdb_title_manager.fetch_titles()
-        LogManagement.info(f'Including {len(tmdb_title_manager.titles)} from The Movie Database fetch')
 
         for extinf_url, extinf_line in self.play_list_data.items():
             count += 1
@@ -255,14 +258,36 @@ class M3UParser:
 
             if m3u_entry.type == TypeEnum.Other:
                 self.tv_m3u_entries.append(m3u_entry)
+
+                if m3u_entry.include:
+                    self.num_other_included += 1
             else:
-                # Check if a specific title is in the dictionary
-                if tmdb_title_manager.check_title(m3u_entry.title):
-                    m3u_entry.include = False
+                if tmdb_title_manager.enabled:
+                    # Check if a specific title is in the dictionary
+                    if not tmdb_title_manager.check_title(m3u_entry.title):
+                        m3u_entry.include = False
                 
+                if m3u_entry.include:
+                    if m3u_entry.type == TypeEnum.Series:
+                        self.num_Series_included += 1
+                    else:
+                        self.num_movies_included += 1
+
                 self.m3u_entries.append(m3u_entry)
 
-            dialog.update(percent=progress, message=m3u_entry.title)
+            message_lines = [
+                f'Title: {m3u_entry.title}',
+                f'{self.num_movies_included} included movies',
+                f'{self.num_Series_included} included tv-show episodes',
+                f'{self.num_other_included} included tv channels',
+            ]
+
+            progress_message = ""
+
+            for message in message_lines:
+                progress_message += message + "\n"
+
+            dialog.update(percent=progress, message=progress_message)
 
         dialog.close
 
@@ -334,7 +359,6 @@ class M3UParser:
                 try:
                     if not self.preview:
                         with xbmcvfs.File(output_strm, 'w') as f:
-                            LogManagement.info(f'Writing file: {output_strm}')
                             f.write(m3u_entry.url)
 
                     if m3u_entry.type == TypeEnum.Series:
@@ -350,7 +374,19 @@ class M3UParser:
                 elif m3u_entry.type == TypeEnum.Movie:
                     self.num_movies_exists += 1
             
-            dialog.update(percent=progress, message=m3u_entry.title)
+            message_lines = [
+                f'Title: {m3u_entry.title}',
+                f'New: {self.num_new_movies} Movies, {self.num_new_series} Episodes',
+                f'Existing: {self.num_movies_exists} Movies {self.num_series_exists} Episodes'
+                f'Skipped: {self.num_movies_skipped} Movies {self.num_series_skipped} Episodes'
+            ]
+
+            progress_message = ""
+
+            for message in message_lines:
+                progress_message += message + "\n"
+
+            dialog.update(percent=progress, message=progress_message)
 
         dialog.close
 
